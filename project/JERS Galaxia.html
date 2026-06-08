@@ -79,21 +79,22 @@ nav.hidden{transform:translateY(-100%)}
 .res-tool-chip svg{opacity:.7}
 
 /* ── Objetivo del Proyecto ── */
-.obj-section{justify-content:center!important;padding-left:0!important;padding-right:0!important}
-.obj-wrap{max-width:100%;width:100%;padding:2rem 6vw!important;display:grid;grid-template-columns:1fr 1fr;gap:5vw;align-items:start;text-align:left}
-.obj-wrap h2{text-align:left;font-size:clamp(2.2rem,4vw,4rem)!important;line-height:1.1;margin-bottom:1.2rem}
-.obj-wrap .label{max-width:none;width:100%;text-align:left;margin:0 0 .8rem}
-.obj-statement{font-size:clamp(.95rem,1.2vw,1.1rem);line-height:1.75;color:rgba(255,255,255,.65);margin:0;max-width:none}
+#s-obj{align-items:center!important;justify-content:center!important}
+#s-obj::before{background:linear-gradient(180deg,rgba(1,7,18,.92) 0%,rgba(1,7,18,.72) 50%,rgba(1,7,18,.92) 100%)!important}
+.obj-wrap{max-width:100%!important;width:100%;padding:2.5rem 6vw!important;display:grid;grid-template-columns:1fr 1fr;gap:6vw;align-items:start;text-align:left}
+.obj-wrap h2{text-align:left;font-size:clamp(2.2rem,3.4vw,3.4rem)!important;line-height:1.08;margin-bottom:1.1rem}
+.obj-wrap .label{max-width:none;width:100%;text-align:left;margin:0 0 .75rem;font-size:13px!important;letter-spacing:4px}
+.obj-statement{font-size:19px;line-height:1.75;color:rgba(255,255,255,.65);margin:0;max-width:none}
 .obj-statement strong{color:#fff;font-weight:700}
 .obj-statement .ac{color:var(--accent);font-weight:700}
 .obj-right{display:flex;flex-direction:column;gap:0}
-.obj-right-label{text-transform:uppercase;font-size:clamp(.78rem,1vw,.95rem);letter-spacing:4px;color:var(--accent);margin-bottom:.8rem;font-weight:600}
-.obj-right h2{text-align:left;font-size:clamp(2rem,3.5vw,3.4rem)!important;line-height:1.1;margin-bottom:1.2rem}
+.obj-right-label{text-transform:uppercase;font-size:13px;letter-spacing:4px;color:var(--accent);margin-bottom:.75rem;font-weight:600}
+.obj-right h2{text-align:left;font-size:clamp(2.2rem,3.4vw,3.4rem)!important;line-height:1.08;margin-bottom:1.1rem}
 .obj-numlist{list-style:none;display:flex;flex-direction:column;gap:0}
-.obj-numitem{display:grid;grid-template-columns:2rem 1fr;gap:.75rem;padding:.8rem 0;border-bottom:1px solid rgba(255,255,255,.07);align-items:baseline}
+.obj-numitem{display:grid;grid-template-columns:1.8rem 1fr;gap:.8rem;padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.07);align-items:baseline}
 .obj-numitem:last-child{border-bottom:none}
-.obj-n{font-size:1rem;font-weight:800;color:var(--accent);line-height:1}
-.obj-numitem p{font-size:clamp(.88rem,1.1vw,1rem);color:rgba(255,255,255,.7);line-height:1.5;margin:0}
+.obj-n{font-size:19px;font-weight:800;color:var(--accent);line-height:1.55}
+.obj-numitem p{font-size:19px;color:rgba(255,255,255,.68);line-height:1.55;margin:0}
 .obj-numitem p strong{color:#fff;font-weight:700}
 
 .facts{display:flex;gap:2rem;flex-wrap:wrap;margin-top:1.4rem}
@@ -661,7 +662,7 @@ nav.hidden{transform:translateY(-100%)}
 
     <!-- Columna derecha: Objetivos Específicos -->
     <div class="obj-right">
-      <p class="obj-right-label">Objetivos Específicos</p>
+      <p class="label">Objetivos Específicos</p>
       <h2>5 pasos para <span class="dim">lograrlo</span></h2>
       <ol class="obj-numlist">
         <li class="obj-numitem">
