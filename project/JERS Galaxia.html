@@ -1412,26 +1412,33 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();navTo(activeSec-1)}
 })
 /* ── Fullscreen demo video ── */
+let _fsGuard=false;
+function _fsGuardOn(){_fsGuard=true;}
+function _fsGuardOff(){setTimeout(()=>{_fsGuard=false;},500);}
+
 function enterDemoFS(){
   const el=document.getElementById('demoIframe');
   const wrap=document.getElementById('demoVideoWrap');
   /* 1. intentar fullscreen nativo sobre el iframe */
   const fn=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
-  if(fn){try{const p=fn.call(el);if(p&&p.catch)p.catch(()=>fsWrap(wrap));}catch(e){fsWrap(wrap);}return;}
+  if(fn){try{_fsGuardOn();const p=fn.call(el);if(p&&p.catch)p.catch(()=>{_fsGuardOff();fsWrap(wrap);});}catch(e){_fsGuardOff();fsWrap(wrap);}return;}
   /* 2. fallback: agrandar el wrapper a pantalla completa con CSS */
   fsWrap(wrap);
 }
 function fsWrap(wrap){
   /* si ya está expandido, contraer */
   if(wrap.dataset.fs==='1'){
+    _fsGuardOn();
     wrap.removeAttribute('data-fs');
     wrap.style.cssText='';
     document.body.style.overflow='';
     const btn=document.getElementById('fsBtnDemo');
     if(btn){btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,3 21,3 21,9"></polyline><polyline points="9,21 3,21 3,15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';btn.onclick=enterDemoFS;}
+    _fsGuardOff();
     return;
   }
   /* expandir */
+  _fsGuardOn();
   wrap.dataset.fs='1';
   wrap.style.cssText='position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-height:none!important;border-radius:0!important;z-index:9999!important;aspect-ratio:auto!important;';
   document.body.style.overflow='hidden';
@@ -1440,17 +1447,21 @@ function fsWrap(wrap){
   /* Esc para salir */
   const escHandler=e=>{if(e.key==='Escape'){fsWrap(wrap);document.removeEventListener('keydown',escHandler);}};
   document.addEventListener('keydown',escHandler);
+  _fsGuardOff();
 }
-/* cambiar ícono al entrar/salir de fullscreen */
+/* cambiar ícono al entrar/salir de fullscreen nativo */
 document.addEventListener('fullscreenchange',()=>{
   const btn=document.getElementById('fsBtnDemo');if(!btn)return;
   if(document.fullscreenElement){
+    _fsGuardOn();
     btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,14 4,20 10,20"></polyline><polyline points="20,10 20,4 14,4"></polyline><line x1="4" y1="20" x2="11" y2="13"></line><line x1="20" y1="4" x2="13" y2="11"></line></svg>';
     btn.onclick=()=>document.exitFullscreen();
     btn.style.opacity='1';
   } else {
+    _fsGuardOn();
     btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,3 21,3 21,9"></polyline><polyline points="9,21 3,21 3,15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
     btn.onclick=enterDemoFS;
+    _fsGuardOff();
   }
 });
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();refreshTops()})
@@ -1586,14 +1597,16 @@ const CONST1_IDX=_secs.findIndex(s=>s.id==='s8')
 const CONST2_IDX=_secs.findIndex(s=>s.id==='s9')
 window.addEventListener('scroll',()=>{
   if(activeSec!==jPrevSec){
-    if(activeSec===JOURNEY_IDX){
-      if(jStep===0){setTimeout(()=>{if(jStep===0)journeyReveal(1)},700)}
-      else if(jComplete){resetJourney();setTimeout(()=>journeyReveal(1),700)}
+    if(!_fsGuard){
+      if(activeSec===JOURNEY_IDX){
+        if(jStep===0){setTimeout(()=>{if(jStep===0)journeyReveal(1)},700)}
+        else if(jComplete){resetJourney();setTimeout(()=>journeyReveal(1),700)}
+      }
+      if(activeSec===CONST1_IDX)animateConstellation('ccsvg9')
+      if(activeSec===CONST2_IDX)animateConstellation('ccsvg10')
+      if(jPrevSec===CONST1_IDX)resetConstellation('ccsvg9')
+      if(jPrevSec===CONST2_IDX)resetConstellation('ccsvg10')
     }
-    if(activeSec===CONST1_IDX)animateConstellation('ccsvg9')
-    if(activeSec===CONST2_IDX)animateConstellation('ccsvg10')
-    if(jPrevSec===CONST1_IDX)resetConstellation('ccsvg9')
-    if(jPrevSec===CONST2_IDX)resetConstellation('ccsvg10')
     jPrevSec=activeSec
   }
 },{passive:true})
