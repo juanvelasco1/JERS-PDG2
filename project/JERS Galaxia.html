@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JERS — Diseño Rápido, Impacto Real</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#010812;--border:rgba(120,170,230,0.2);
+  --text:#fff;--dim:#ffffff;--muted:#dbeaff;--accent:#5cb3ff;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:#fff;overflow-x:hidden}
+#gc{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+.progress-bar{position:fixed;top:0;left:0;height:3px;width:0;
+  background:linear-gradient(90deg,#1a3a5c,var(--accent),#1a3a5c);z-index:201;transition:width .1s;
+  box-shadow:0 0 12px rgba(92,179,255,.5)}
+
+nav{position:fixed;top:0;left:0;z-index:200;padding:1.2rem 1.8rem;background:none;border:none;transition:transform .4s}
+nav.hidden{transform:translateY(-100%)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.15rem;letter-spacing:3px}
+.nav-divider{width:1px;height:22px;background:rgba(255,255,255,.2);margin:0 4px}
+.nav-icesi{height:28px;opacity:.55;filter:brightness(10)}
+.nav-count{display:none}
+
+.scene-section{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;pointer-events:none}
+/* scrim sutil del lado del texto — mejora contraste sin parecer tarjeta */
+.scene-section::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none}
+.scene-section:nth-child(odd)::before{background:linear-gradient(100deg,rgba(1,7,18,.93) 0%,rgba(1,7,18,.72) 32%,rgba(1,7,18,.28) 54%,transparent 68%)}
+.scene-section:nth-child(even)::before{background:linear-gradient(260deg,rgba(1,7,18,.93) 0%,rgba(1,7,18,.72) 32%,rgba(1,7,18,.28) 54%,transparent 68%)}
+.scene-section .content{
+  position:relative;z-index:1;
+  pointer-events:auto;max-width:660px;padding:2rem 3rem;
+  text-shadow:0 1px 8px rgba(0,4,12,1),0 2px 32px rgba(0,4,12,.98),0 6px 56px rgba(0,4,12,.9);
+}
+/* whole-block reveal — sin solapamientos, layout estable */
+.scene-section .content{opacity:0;transform:translateY(22px);
+  transition:opacity .75s ease,transform .75s cubic-bezier(.22,.7,.2,1)}
+.scene-section .content.visible{opacity:1;transform:none}
+.scene-section:nth-child(odd){justify-content:flex-start;padding-left:5.5vw}
+.scene-section:nth-child(even){justify-content:flex-end;padding-right:5.5vw}
+
+.content .label{text-transform:uppercase;font-size:clamp(.78rem,1vw,.95rem);letter-spacing:4px;color:var(--accent);margin-bottom:.95rem;font-weight:600}
+.content h2{font-size:clamp(2.5rem,4.6vw,4.6rem);font-weight:800;line-height:1.07;margin-bottom:1.5rem;letter-spacing:-.024em}
+.content h1{font-size:clamp(2.9rem,5.4vw,5.4rem);font-weight:800;line-height:1.03;margin-bottom:1.4rem;letter-spacing:-.026em}
+.content h2 .dim,.content h1 .dim{color:var(--accent)}
+.content p{font-size:clamp(1.12rem,1.45vw,1.4rem);line-height:1.62;color:var(--dim);margin-bottom:1.1rem;max-width:36ch}
+.content .formula{display:inline-block;background:rgba(92,179,255,.1);border:1px solid var(--border);
+  border-radius:10px;padding:.7rem 1.3rem;font-size:1.25rem;font-weight:600;color:var(--accent);margin:.4rem 0 1rem;letter-spacing:.04em}
+
+/* ── Resultados antes/después ── */
+.res-wrap{max-width:100%!important;width:calc(100vw - 6rem);padding:2rem 3rem 4rem!important}
+.res-cards{display:grid;grid-template-columns:1fr 1fr;gap:2.4rem;margin-top:.5rem}
+.res-card{border-radius:20px;padding:2rem 2.4rem;display:flex;flex-direction:column;gap:1.2rem;position:relative;overflow:hidden}
+.res-before{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18)}
+.res-after{background:rgba(92,179,255,.09);border:1px solid rgba(92,179,255,.45);box-shadow:0 0 60px rgba(92,179,255,.15)}
+.res-badge{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:.3rem .9rem;border-radius:999px;width:fit-content}
+.res-badge-before{background:rgba(255,255,255,.12);color:rgba(255,255,255,.75)}
+.res-badge-after{background:rgba(92,179,255,.25);color:#7ecfff}
+.res-period{font-size:.85rem;color:rgba(255,255,255,.55);margin-top:-.5rem;letter-spacing:.04em}
+.res-group{display:flex;flex-direction:column;gap:.45rem}
+.res-ch{font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:.15rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:.4rem}
+.res-src{font-size:.72rem;font-weight:400;letter-spacing:.03em;color:rgba(255,255,255,.38);text-transform:none}
+.res-row{display:flex;align-items:baseline;gap:.65rem}
+.res-val{font-size:clamp(1.8rem,2.4vw,2.6rem);font-weight:800;line-height:1;letter-spacing:-.03em;color:#fff;white-space:nowrap}
+.res-glow{color:#7ecfff;text-shadow:0 0 22px rgba(92,179,255,.7)}
+.res-meta{font-size:.9rem;color:rgba(255,255,255,.7);line-height:1.2}
+.res-delta{font-size:.78rem;font-weight:700;letter-spacing:.05em;padding:.2rem .6rem;border-radius:999px;white-space:nowrap}
+.res-delta.up{background:rgba(80,220,130,.2);color:#6eeaa0}
+/* herramientas */
+.res-tools{display:flex;align-items:center;gap:1rem;margin-top:1.4rem;padding-top:1.1rem;border-top:1px solid rgba(255,255,255,.08)}
+.res-tools-lbl{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);flex-shrink:0}
+.res-tools-chips{display:flex;gap:.6rem;flex-wrap:wrap}
+.res-tool-chip{display:inline-flex;align-items:center;gap:.45rem;padding:.35rem .85rem;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);font-size:.82rem;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.02em}
+.res-tool-chip svg{opacity:.7}
+
+/* ── Objetivo del Proyecto ── */
+.obj-section{justify-content:center!important;padding-left:0!important;padding-right:0!important}
+.obj-wrap{max-width:820px;width:100%;padding:2rem 3rem!important;text-align:center}
+.obj-wrap h2{text-align:center}
+.obj-wrap .label{max-width:none;width:100%;text-align:center;margin:0 0 .95rem}
+.obj-statement{font-size:clamp(.95rem,1.2vw,1.15rem);line-height:1.7;color:rgba(255,255,255,.72);margin:0 auto 2rem;max-width:56ch;text-align:center}
+.obj-pillars{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;text-align:left}
+.obj-pillar{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:1.2rem 1.4rem;display:flex;flex-direction:column;gap:.5rem}
+.obj-pillar-mid{background:rgba(92,179,255,.07);border-color:rgba(92,179,255,.3)}
+.obj-pill-label{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.obj-pill-q{font-size:1.15rem;font-weight:700;color:#fff;line-height:1.2}
+.obj-pill-evid{font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.55;margin-top:.2rem}
+
+.facts{display:flex;gap:2rem;flex-wrap:wrap;margin-top:1.4rem}
+.fact-box{text-align:left}
+.fact-box .num{font-size:clamp(2.6rem,3.6vw,3.8rem);font-weight:800;line-height:1;letter-spacing:-.03em;color:#fff;white-space:nowrap}
+.fact-box .num.ac{color:var(--accent)}
+.fact-box .lbl{font-size:1.02rem;color:var(--dim);margin-top:.4rem;max-width:170px;line-height:1.35;font-weight:500}
+
+.detail-list{margin-top:1.2rem;list-style:none}
+.detail-list li{padding:.78rem 0;border-bottom:1px solid var(--border);font-size:clamp(1.05rem,1.3vw,1.28rem);color:var(--dim);line-height:1.55}
+.detail-list li strong{color:#fff;font-weight:700}
+.detail-list li strong.ac{color:var(--accent)}
+
+.jw{display:flex;gap:0;margin-top:1.4rem;max-width:560px}
+.js{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative}
+.jcon{position:absolute;top:22px;left:50%;right:-50%;height:2px;background:rgba(92,179,255,.25);z-index:-1}
+.js:last-child .jcon{display:none}
+.ji{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.05rem;margin-bottom:.5rem}
+.ji-a{background:rgba(92,179,255,.14);border:2px solid rgba(92,179,255,.5);color:var(--accent)}
+.ji-g{background:rgba(245,200,66,.12);border:2px solid rgba(245,200,66,.55);color:#f5c842}
+.jl{font-size:.95rem;font-weight:700;color:#fff;white-space:nowrap}
+.jt{font-size:.82rem;color:var(--dim);margin-top:3px;white-space:nowrap;font-weight:500}
+
+.prow{display:flex;align-items:baseline;gap:1.4rem;padding:.7rem 0;border-bottom:1px solid var(--border)}
+.pyr{font-size:.95rem;color:var(--accent);opacity:1;width:58px;flex-shrink:0;font-weight:700}
+.pval{font-size:clamp(1.6rem,2.8vw,2.5rem);font-weight:700;color:#fff;letter-spacing:-.02em}
+.pnote{font-size:.95rem;color:var(--dim);margin-left:auto;font-weight:500}
+
+.hero-btn{display:inline-flex;align-items:center;gap:.5rem;margin-top:1.6rem;
+  padding:1rem 2.3rem;border-radius:999px;background:#fff;color:#021018;text-decoration:none;
+  font-weight:700;font-size:1rem;border:none;cursor:pointer;font-family:inherit;
+  transition:transform .3s,box-shadow .3s;box-shadow:0 0 36px rgba(92,179,255,.25)}
+.hero-btn:hover{transform:translateY(-2px);box-shadow:0 0 56px rgba(92,179,255,.45)}
+
+.scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:.45rem;color:var(--muted);
+  font-size:.72rem;letter-spacing:3px;animation:bob 2s ease-in-out infinite;pointer-events:none}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+.dots{position:fixed;right:1.6rem;top:50%;transform:translateY(-50%);z-index:200;display:flex;flex-direction:column;gap:13px}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(120,170,230,.2);transition:all .4s;cursor:pointer;border:none;padding:0}
+.dot.active{background:var(--accent);box-shadow:0 0 12px rgba(92,179,255,.6);transform:scale(1.4)}
+
+/* ── JOURNEY MAP 10 PASOS — full screen ── */
+
+/* scrim uniforme slide 5 */
+#s5::before{background:linear-gradient(180deg,rgba(1,7,18,.92) 0%,rgba(1,7,18,.72) 48%,rgba(1,7,18,.92) 100%) !important}
+#s5{align-items:center !important;justify-content:center !important}
+
+/* content wrapper full-screen */
+.jmap-full{
+  max-width:100% !important;width:100%;
+  padding:1.6rem 6vw 1.4rem !important;
+  display:flex;flex-direction:column;gap:0
+}
+.jmap-header{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:1.1rem;gap:.8rem;flex-wrap:wrap
+}
+.jmap-title{font-size:clamp(1.8rem,2.6vw,2.9rem) !important;margin-bottom:0 !important}
+
+/* progress badge */
+.jprog{text-align:right;opacity:0;transition:opacity .4s;flex-shrink:0}
+.jprog.jon{opacity:1}
+.jprog-top{display:flex;align-items:baseline;gap:.25rem;justify-content:flex-end}
+.jprog-num{font-size:2.2rem;font-weight:800;color:var(--accent);line-height:1;transition:all .35s}
+.jprog-denom{font-size:.95rem;color:rgba(255,255,255,.4)}
+.jprog-bar{width:88px;height:3px;background:rgba(92,179,255,.1);border-radius:2px;margin-top:5px;overflow:hidden;margin-left:auto}
+.jprog-fill{height:100%;background:linear-gradient(90deg,rgba(92,179,255,.45),var(--accent));border-radius:2px;width:0%;transition:width .55s ease}
+
+/* phase labels */
+.jphases{display:flex;width:100%;margin-bottom:.55rem;gap:0}
+.jphase{
+  flex:1;font-size:.62rem;font-weight:700;letter-spacing:2.5px;
+  text-transform:uppercase;color:rgba(255,255,255,.25);
+  padding:.1rem 0 .35rem;border-top:1px solid rgba(92,179,255,.1);
+  text-align:center;transition:color .4s,border-color .4s
+}
+.jphase.jph-on{color:var(--accent);border-color:rgba(92,179,255,.45)}
+.jphase.jph-done{color:rgba(255,255,255,.4);border-color:rgba(92,179,255,.25)}
+
+/* map rows */
+.jmap10{width:100%}
+.jrow10{display:flex;align-items:center;width:100%}
+
+/* nodes */
+.jstep10{
+  flex-shrink:0;width:76px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  opacity:0;transform:scale(.42) translateY(14px);
+  transition:opacity .45s ease,transform .45s cubic-bezier(.2,.75,.2,1)
+}
+.jstep10.jon{opacity:1;transform:scale(1) translateY(0)}
+.ji10{
+  width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.96rem;margin-bottom:.5rem;
+  transition:box-shadow .4s,border-color .4s,background .4s,color .4s;
+  position:relative;z-index:1
+}
+.ji10a{background:rgba(92,179,255,.07);border:2px solid rgba(92,179,255,.2);color:rgba(92,179,255,.55)}
+.ji10g{background:rgba(245,200,66,.07);border:2px solid rgba(245,200,66,.2);color:rgba(245,200,66,.55)}
+.ji10w{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.18);color:rgba(255,255,255,.45)}
+/* done */
+.jstep10.jdone .ji10a{background:rgba(92,179,255,.12);border-color:rgba(92,179,255,.45);color:rgba(92,179,255,.85)}
+.jstep10.jdone .ji10g{background:rgba(245,200,66,.12);border-color:rgba(245,200,66,.45);color:rgba(245,200,66,.85)}
+.jstep10.jdone .ji10w{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.55);color:#fff}
+/* current */
+.jstep10.jcur .ji10a{background:rgba(92,179,255,.16);border-color:var(--accent);color:var(--accent);box-shadow:0 0 24px rgba(92,179,255,.6),0 0 48px rgba(92,179,255,.18)}
+.jstep10.jcur .ji10g{background:rgba(245,200,66,.16);border-color:#f5c842;color:#f5c842;box-shadow:0 0 24px rgba(245,200,66,.6),0 0 48px rgba(245,200,66,.18)}
+.jstep10.jcur .ji10w{background:rgba(255,255,255,.14);border-color:#fff;color:#fff;box-shadow:0 0 24px rgba(255,255,255,.5),0 0 48px rgba(255,255,255,.12)}
+.jl10{font-size:.76rem;font-weight:700;color:rgba(255,255,255,.6);white-space:nowrap;line-height:1.2;transition:color .35s}
+.jt10{font-size:.63rem;color:rgba(255,255,255,.3);margin-top:3px;white-space:nowrap;transition:color .35s}
+.jstep10.jdone .jl10{color:rgba(255,255,255,.85)}
+.jstep10.jdone .jt10{color:rgba(255,255,255,.45)}
+.jstep10.jcur .jl10{color:#fff;font-weight:800}
+.jstep10.jcur .jt10{color:var(--muted)}
+
+/* horizontal connectors */
+.jconn10h{
+  flex:1;height:3px;
+  background:rgba(92,179,255,.07);
+  position:relative;overflow:visible;
+  border-radius:2px
+}
+/* fill */
+.jconn10h::after{
+  content:'';position:absolute;inset:0;border-radius:2px;
+  background:linear-gradient(90deg,rgba(92,179,255,.45),var(--accent));
+  transform:scaleX(0);transform-origin:left center;
+  transition:transform .55s cubic-bezier(.38,0,.18,1)
+}
+.jconn10h.jon::after{transform:scaleX(1)}
+.jrow10.jrev .jconn10h::after{
+  transform-origin:right center;
+  background:linear-gradient(270deg,rgba(92,179,255,.45),var(--accent))
+}
+/* spark */
+.jconn10h::before{
+  content:'';position:absolute;
+  top:50%;left:0;
+  width:10px;height:10px;border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 12px 3px var(--accent),0 0 22px rgba(92,179,255,.5);
+  transform:translateY(-50%) translateX(-5px);
+  opacity:0;pointer-events:none;z-index:4
+}
+.jconn10h.spark-ltr::before{animation:spark-ltr .7s ease-out forwards}
+.jconn10h.spark-rtl::before{animation:spark-rtl .7s ease-out forwards}
+@keyframes spark-ltr{
+  0%  {left:0%;  opacity:1}
+  85% {left:96%; opacity:.8}
+  100%{left:100%;opacity:0}
+}
+@keyframes spark-rtl{
+  0%  {left:100%;opacity:1}
+  85% {left:4%;  opacity:.8}
+  100%{left:0%;  opacity:0}
+}
+
+/* corner (paso 5 → 6) */
+.jmap-corner{height:28px;position:relative}
+.jmap-corner::before{content:'';position:absolute;right:38px;top:0;width:3px;height:100%;background:rgba(92,179,255,.07);border-radius:2px}
+.jconn10v{position:absolute;right:38px;top:0;width:3px;height:100%;overflow:visible;border-radius:2px}
+.jconn10v::after{content:'';position:absolute;top:0;left:0;right:0;height:0;background:linear-gradient(180deg,var(--accent),rgba(92,179,255,.45));transition:height .4s ease;border-radius:2px}
+.jconn10v.jon::after{height:100%}
+.jconn10v::before{
+  content:'';position:absolute;top:0;left:50%;
+  width:10px;height:10px;border-radius:50%;
+  background:#fff;box-shadow:0 0 12px 3px var(--accent);
+  transform:translateX(-50%) translateY(-5px);
+  opacity:0;pointer-events:none;z-index:4
+}
+.jconn10v.spark-v::before{animation:spark-v .42s ease-out forwards}
+@keyframes spark-v{
+  0%  {top:0%;  opacity:1}
+  85% {top:88%; opacity:.8}
+  100%{top:100%;opacity:0}
+}
+
+/* description box */
+.jdesc10{
+  margin-top:.9rem;min-height:2.6rem;
+  padding:.65rem 1.1rem;
+  background:rgba(92,179,255,.07);
+  border-left:3px solid var(--accent);border-radius:0 8px 8px 0;
+  font-size:1rem;color:#fff;font-weight:500;line-height:1.5;
+  opacity:0;transform:translateY(6px);
+  transition:opacity .3s,transform .3s
+}
+.jdesc10.jon{opacity:1;transform:translateY(0)}
+
+/* next button */
+.jnext-hint{
+  display:inline-flex;align-items:center;gap:.6rem;margin-top:.9rem;
+  padding:.6rem 1.45rem;border-radius:999px;
+  background:rgba(92,179,255,.09);border:1px solid rgba(92,179,255,.28);
+  color:var(--accent);font-size:.9rem;font-weight:700;
+  font-family:inherit;cursor:pointer;letter-spacing:.02em;
+  transition:background .25s,border-color .25s,transform .18s
+}
+.jnext-hint:hover{background:rgba(92,179,255,.18);border-color:rgba(92,179,255,.55);transform:translateY(-1px)}
+.jnext-hint.pulse{animation:jpulse 1.45s ease-in-out infinite}
+.jnext-hint.done{animation:none;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3);color:#fff}
+@keyframes jpulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(92,179,255,.4)}
+  55%{box-shadow:0 0 0 10px transparent}
+}
+
+.demo-yt-link{
+  display:block;position:absolute;inset:0;text-decoration:none;
+}
+.demo-yt-overlay{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1rem;
+  background:rgba(1,7,18,.35);transition:background .2s;
+}
+.demo-yt-link:hover .demo-yt-overlay{background:rgba(1,7,18,.15)}
+.demo-yt-overlay span{
+  color:#fff;font-size:1.1rem;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;
+}
+/* ── DEMO SLIDE (s6) ── */
+#s6{align-items:center !important;justify-content:center !important;pointer-events:auto !important}
+#s6 *{pointer-events:auto !important}
+#s6::before{background:linear-gradient(95deg,rgba(1,7,18,.92) 0%,rgba(1,7,18,.65) 32%,rgba(1,7,18,.18) 58%,transparent 72%) !important}
+.demo-full{
+  max-width:100% !important;width:100%;
+  padding:2rem 5vw !important;
+  display:flex;flex-direction:row;align-items:center;
+  gap:4vw;min-height:100vh;box-sizing:border-box
+}
+.demo-left{
+  flex:0 0 280px;display:flex;flex-direction:column;gap:0
+}
+.demo-title{font-size:clamp(2.2rem,3.1vw,3.5rem) !important;margin-bottom:1.8rem !important}
+.demo-qr-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:.6rem}
+.demo-qr-img{
+  width:130px;border-radius:10px;
+  border:1px solid rgba(92,179,255,.22);
+  box-shadow:0 0 24px rgba(92,179,255,.12)
+}
+.demo-qr-url{
+  font-size:.85rem;color:var(--accent);font-weight:700;
+  letter-spacing:2.5px;margin:0;text-decoration:none
+}
+.demo-video{
+  flex:1;position:relative;
+  border-radius:14px;overflow:visible;
+  border:1px solid rgba(92,179,255,.18);
+  background:#000;
+  aspect-ratio:16/9;
+  max-height:calc(100vh - 8rem);
+  box-shadow:0 0 60px rgba(0,0,0,.55),0 0 0 1px rgba(92,179,255,.08);
+  align-self:center
+}
+.demo-video iframe{
+  position:absolute;inset:0;
+  width:100%;height:100%;border:none;
+  border-radius:14px
+}
+}
+/* override: demo-full no debe crear stacking context */
+.demo-full{opacity:1!important;transform:none!important;transition:none!important}
+/* botón fullscreen custom */
+.demo-fs-btn{
+  position:absolute;bottom:12px;right:12px;z-index:20;
+  background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.22);
+  border-radius:8px;width:40px;height:40px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:#fff;
+  opacity:0;transition:opacity .2s,background .15s;
+  pointer-events:auto!important
+}
+.demo-fs-btn:hover{background:rgba(0,0,0,.95);border-color:rgba(92,179,255,.55)}
+.demo-video:hover .demo-fs-btn,.demo-fs-btn:focus{opacity:1}
+/* placeholder mientras no hay video */
+.demo-video-ph{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;
+  color:rgba(255,255,255,.2);font-size:.85rem;letter-spacing:2px;
+  border:2px dashed rgba(92,179,255,.1);border-radius:14px;
+  pointer-events:none
+}
+.demo-video-ph svg{opacity:.18}
+
+/* ── CONSTELLATION CHARTS (s9, s10) ── */
+#s8,#s9{align-items:center !important;justify-content:center !important}
+#s8::before,#s9::before{background:linear-gradient(180deg,rgba(1,7,18,.9) 0%,rgba(1,7,18,.7) 50%,rgba(1,7,18,.9) 100%) !important}
+.cc-full{max-width:100% !important;width:100%;padding:1.6rem 5vw 1.2rem !important;display:flex;flex-direction:column;gap:.6rem}
+.cc-title{font-size:clamp(1.8rem,2.6vw,2.8rem) !important;margin-bottom:.2rem !important}
+.cc-sub{font-size:.95rem;color:rgba(255,255,255,.55);max-width:none !important;margin-bottom:0 !important}
+.cc-svg{width:100%;display:block;overflow:visible;flex:1}
+/* SVG base */
+.cc-grid{stroke:rgba(92,179,255,.07);stroke-width:1;fill:none}
+.cc-axis{stroke:rgba(92,179,255,.2);stroke-width:1;fill:none}
+.cc-axis-lbl{fill:rgba(255,255,255,.28);font-size:11px;font-family:Outfit,sans-serif;letter-spacing:1px}
+.cc-axis-title{fill:rgba(255,255,255,.38);font-size:10.5px;font-family:Outfit,sans-serif;font-weight:700;letter-spacing:2.5px}
+/* market curve */
+.cc-market{fill:none;stroke:rgba(92,179,255,.16);stroke-width:1.5;stroke-dasharray:800;stroke-dashoffset:800;transition:stroke-dashoffset 1.3s cubic-bezier(.4,0,.2,1)}
+.cc-market.animate{stroke-dashoffset:0}
+/* JERS constellation lines */
+.cc-jline{fill:none;stroke:rgba(92,179,255,.1);stroke-width:1;stroke-dasharray:5,8;stroke-dashoffset:800;transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)}
+.cc-jline.animate{stroke-dashoffset:0}
+/* competitor dots */
+.cc-comp{transform:scale(0);transform-box:fill-box;transform-origin:center;opacity:0;transition:transform .45s cubic-bezier(.2,.7,.2,1),opacity .45s ease}
+.cc-comp.animate{transform:scale(1);opacity:1}
+/* JERS dots */
+.cc-dot-jers{transform:scale(0);transform-box:fill-box;transform-origin:center;opacity:0;transition:transform .55s cubic-bezier(.15,.9,.2,1.15),opacity .45s ease}
+.cc-dot-jers.animate{transform:scale(1);opacity:1}
+.cc-dot-jers-inner.animate{animation:jerspulse 2.4s ease-in-out .6s infinite}
+@keyframes jerspulse{0%,100%{opacity:1}50%{opacity:.45}}
+/* labels */
+.cc-lbl-comp{fill:rgba(255,255,255,.55);font-size:11px;font-family:Outfit,sans-serif;font-weight:600;opacity:0;transition:opacity .4s ease}
+.cc-lbl-comp.animate{opacity:1}
+.cc-lbl-jm{fill:#5cb3ff;font-size:13px;font-family:Outfit,sans-serif;font-weight:700;opacity:0;transition:opacity .4s ease}
+.cc-lbl-jm.animate{opacity:1}
+.cc-lbl-js{fill:rgba(92,179,255,.65);font-size:10px;font-family:Outfit,sans-serif;opacity:0;transition:opacity .4s ease}
+.cc-lbl-sub{fill:rgba(255,255,255,.48);font-size:9.5px;font-family:Outfit,sans-serif;opacity:0;transition:opacity .4s ease}
+.cc-lbl-sub.animate{opacity:1}
+.cc-lbl-js.animate{opacity:1}
+
+/* ── HERO PORTADA (s0) ── */
+#s0{align-items:center !important;justify-content:center !important}
+#s0::before{background:radial-gradient(ellipse 85% 90% at 50% 50%,rgba(1,7,18,.04) 0%,rgba(1,7,18,.52) 50%,rgba(1,7,18,.94) 100%) !important}
+.hero-center{
+  max-width:700px;margin:0 auto;
+  padding:2rem !important;
+  text-align:center;
+  display:flex;flex-direction:column;align-items:center;
+  opacity:1 !important;transform:none !important;transition:none !important
+}
+.hero-mark{
+  width:38px;height:78px;margin-bottom:1rem;
+  animation:hup .9s cubic-bezier(.2,.7,.2,1) .08s both
+}
+.hero-wordmark{
+  font-size:clamp(5.5rem,12vw,11.5rem) !important;font-weight:800 !important;
+  letter-spacing:.1em;line-height:1;color:#fff;
+  display:flex;justify-content:center;gap:.05em;
+  margin-bottom:.3rem
+}
+.hl{
+  display:inline-block;
+  animation:hup .65s cubic-bezier(.22,.75,.2,1) var(--hd,.2s) both
+}
+.hero-rule{
+  width:200px;height:1px;margin:.7rem auto .95rem;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  transform-origin:center;
+  animation:hrule .95s ease .72s both
+}
+.hero-tagline{
+  font-size:clamp(1.75rem,2.8vw,2.6rem);font-weight:800;
+  color:#fff;line-height:1.18;letter-spacing:-.025em;
+  margin-bottom:1.1rem;
+  animation:hup .7s ease .9s both
+}
+.ht-dim{color:var(--accent)}
+.hero-sub{
+  font-size:clamp(.76rem,.95vw,.92rem);
+  color:rgba(255,255,255,.48);letter-spacing:2.5px;
+  text-transform:uppercase;margin-bottom:.4rem;
+  animation:hfade .7s ease 1.08s both
+}
+.hero-founders{
+  font-size:.88rem;color:rgba(255,255,255,.32);
+  letter-spacing:.5px;margin-bottom:1.7rem;
+  animation:hfade .7s ease 1.22s both
+}
+.hero-cell-badge{
+  display:inline-flex;align-items:center;gap:.55rem;
+  padding:.5rem 1.25rem;border-radius:999px;
+  border:1px solid rgba(92,179,255,.4);
+  background:rgba(92,179,255,.09);
+  color:var(--accent);font-size:.76rem;font-weight:700;
+  letter-spacing:2.5px;text-transform:uppercase;
+  margin-bottom:1.6rem;
+  animation:hup .6s cubic-bezier(.2,.75,.2,1) .04s both
+}
+.hero-cell-badge::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.quote-author{display:inline-block;margin-top:.45rem;font-size:.92rem;font-weight:600;color:var(--accent);letter-spacing:.02em}
+.quote-author.quote-pending{color:rgba(255,255,255,.34);font-weight:500;font-style:italic}
+.hero-cta-btn{animation:hup .6s cubic-bezier(.2,.75,.2,1) 1.38s both}
+@keyframes hup{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes hfade{from{opacity:0}to{opacity:1}}
+@keyframes hrule{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+
+/* ── CIERRE (s19) ── */
+#s14{align-items:center !important;justify-content:center !important}
+#s14::before{background:radial-gradient(ellipse 85% 90% at 50% 50%,rgba(1,7,18,.04) 0%,rgba(1,7,18,.52) 50%,rgba(1,7,18,.94) 100%) !important}
+.closing-center{
+  max-width:720px;margin:0 auto;
+  padding:2rem !important;
+  text-align:center;
+  display:flex;flex-direction:column;align-items:center;
+  opacity:1 !important;transform:none !important;transition:none !important
+}
+.closing-mark{width:32px;height:66px;margin-bottom:1.3rem;opacity:0}
+.closing-center.visible .closing-mark{animation:hfade .9s ease .1s forwards}
+.closing-title{
+  font-size:clamp(2.6rem,5vw,4.8rem) !important;
+  font-weight:800;line-height:1.07;letter-spacing:-.03em;
+  color:#fff;margin-bottom:0;opacity:0
+}
+.closing-center.visible .closing-title{animation:hup .85s cubic-bezier(.2,.7,.2,1) .3s forwards}
+.ct-dim{color:var(--accent)}
+.closing-rule{
+  width:180px;height:1px;margin:1.4rem auto 1.3rem;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  transform:scaleX(0);opacity:0
+}
+.closing-center.visible .closing-rule{animation:hrule .9s ease .65s forwards}
+.closing-pillars{display:flex;gap:.9rem;margin-bottom:1.6rem;flex-wrap:wrap;justify-content:center;opacity:0}
+.closing-center.visible .closing-pillars{animation:hup .6s ease .85s forwards}
+.closing-pill{
+  padding:.45rem 1.3rem;border-radius:999px;
+  border:1px solid rgba(92,179,255,.2);
+  background:rgba(92,179,255,.06);
+  color:rgba(255,255,255,.65);
+  font-size:.9rem;font-weight:600;letter-spacing:.06em
+}
+.closing-pill-ac{
+  border-color:rgba(92,179,255,.48);
+  background:rgba(92,179,255,.12);color:var(--accent)
+}
+.closing-tag{
+  font-size:clamp(.75rem,.9vw,.88rem);
+  color:rgba(255,255,255,.38);letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:.55rem;opacity:0
+}
+.closing-center.visible .closing-tag{animation:hfade .6s ease 1.05s forwards}
+.closing-contact{
+  font-size:.88rem;color:rgba(255,255,255,.28);letter-spacing:.5px;opacity:0
+}
+.closing-center.visible .closing-contact{animation:hfade .6s ease 1.2s forwards}
+
+/* ── BUYER PERSONAS (s-mkt) ── */
+#s-mkt{align-items:center !important;justify-content:center !important}
+#s-mkt::before{background:linear-gradient(180deg,rgba(1,7,18,.92) 0%,rgba(1,7,18,.72) 50%,rgba(1,7,18,.92) 100%) !important}
+.bp-full{
+  max-width:100% !important;width:100%;
+  padding:2rem 5vw 2.4rem !important;
+  display:flex;flex-direction:column;gap:.3rem
+}
+.bp-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.4rem;margin-top:.8rem}
+.bp-card{
+  border-radius:18px;padding:1.7rem 1.8rem;
+  display:flex;flex-direction:column;gap:1rem;
+  background:rgba(92,179,255,.07);
+  border:1px solid rgba(92,179,255,.36);
+  box-shadow:0 0 55px rgba(92,179,255,.1)
+}
+.bp-card-mid{
+  background:rgba(92,179,255,.07);
+  border:1px solid rgba(92,179,255,.36);
+  box-shadow:0 0 55px rgba(92,179,255,.1)
+}
+.bp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem}
+.bp-num{
+  font-size:2.6rem;font-weight:800;line-height:1;
+  color:rgba(255,255,255,.1);letter-spacing:-.04em
+}
+.bp-card-mid .bp-num{color:rgba(92,179,255,.22)}
+.bp-age{
+  font-size:.65rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent);
+  background:rgba(92,179,255,.1);border:1px solid rgba(92,179,255,.2);
+  border-radius:999px;padding:.22rem .75rem;width:fit-content;white-space:nowrap
+}
+.bp-name{
+  font-size:1.15rem;font-weight:800;color:#fff;
+  line-height:1.2;margin:-.3rem 0 0
+}
+.bp-quote{
+  font-size:.9rem;color:rgba(255,255,255,.58);
+  font-style:italic;line-height:1.55;
+  padding:.5rem .9rem;
+  border-left:2px solid rgba(92,179,255,.3);
+  background:rgba(92,179,255,.04);
+  border-radius:0 8px 8px 0;margin:0
+}
+.bp-card-mid .bp-quote{border-left-color:var(--accent);color:rgba(255,255,255,.72)}
+.bp-rows{display:flex;flex-direction:column;gap:.5rem}
+.bp-row{display:grid;grid-template-columns:80px 1fr;gap:.5rem;align-items:baseline}
+.bp-row-lbl{
+  font-size:.65rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:rgba(255,255,255,.3)
+}
+.bp-row-val{
+  font-size:.88rem;color:rgba(255,255,255,.72);line-height:1.4
+}
+.bp-row-val strong{color:#fff;font-weight:700}
+.bp-fear{
+  padding-top:.9rem;
+  border-top:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:baseline;gap:.55rem
+}
+.bp-fear-lbl{
+  font-size:.62rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:rgba(255,100,100,.65);flex-shrink:0
+}
+.bp-fear-txt{
+  font-size:.88rem;color:rgba(255,255,255,.68);
+  font-weight:500;line-height:1.35
+}
+
+@media(max-width:768px){
+  .scene-section:nth-child(odd),.scene-section:nth-child(even){justify-content:center;padding:1.2rem}
+  .content{max-width:100%}.dots{right:.7rem}
+}
+</style>
+</head>
+<body>
+<canvas id="gc"></canvas>
+<div class="progress-bar" id="pb"></div>
+
+<svg style="display:none"><symbol id="ji" viewBox="0 0 23 47">
+<svg x="0" y="11.61" width="14.94" height="19.06" viewBox="0 0 14.9378 19.0585"><path d="M11.0424 9.48603V14.7166L9.59425 16.2238L4.25406 10.9932V5.76254C4.88764 5.58523 6.1548 4.80507 6.1548 3.10291C6.1548 1.15251 4.70661 0 3.0774 0C1.44819 0 0 1.24116 0 3.10291C0 4.5923 1.38785 5.49658 2.08177 5.76254V11.3478C2.08177 11.9861 2.32314 12.2639 2.44382 12.323C4.3144 14.1847 8.21847 18.0678 8.87016 18.7061C9.52184 19.3444 10.2882 18.9721 10.5899 18.7061L13.3052 15.7805V9.48603C13.8785 9.24961 15.0069 8.35125 14.9344 6.64908C14.8439 4.52138 13.0337 3.72349 11.9476 3.72349C10.8614 3.72349 8.96067 4.69869 8.96067 6.64908C8.96067 8.2094 10.3485 9.19051 11.0424 9.48603Z" fill="#5cb3ff"/></svg>
+<svg x="0.52" y="8" width="22.15" height="30.39" viewBox="0 0 22.1491 30.3906"><path d="M0.00289265 23.4043C0.072371 25.2207 2.02934 25.966 2.95572 26.0242C4.13685 27.4215 7.12439 30.3906 11.8142 30.3906C19.4568 29.6047 21.8307 24.4231 22.1491 20.3478V0H11.1194V3.31852H19.0226V18.0772C19.0921 20.9416 17.9531 23.2155 17.8067 23.4043C13.2038 29.3427 7.29811 26.5773 5.38746 24.0156C5.73486 21.3957 4.43214 20.5224 2.95572 20.3478C1.80496 20.2116 -0.0839553 21.1337 0.00289265 23.4043Z" fill="#5cb3ff"/></svg>
+</symbol></svg>
+
+<nav id="nv"><div class="nav-logo"><svg width="14" height="28"><use href="#ji"/></svg><div class="nav-divider"></div><img class="nav-icesi" src="uploads/logo icesi 1.png" alt="Universidad Icesi"></div><span class="nav-count" id="nc">01 / 20</span></nav>
+<div class="dots" id="dots"></div>
+
+<main>
+<section class="scene-section" id="s0" data-screen-label="Portada">
+  <div class="content hero-center">
+
+    <div class="hero-cell-badge">Célula de Emprendimiento</div>
+
+    <!-- Marca J -->
+    <svg class="hero-mark" viewBox="0 0 23 47" xmlns="http://www.w3.org/2000/svg">
+      <use href="#ji"></use>
+    </svg>
+
+    <!-- Wordmark letra a letra -->
+    <h1 class="hero-wordmark" aria-label="JERS">
+      <span class="hl" style="--hd:.18s">J</span>
+      <span class="hl" style="--hd:.30s">E</span>
+      <span class="hl" style="--hd:.42s">R</span>
+      <span class="hl" style="--hd:.54s">S</span>
+    </h1>
+
+    <div class="hero-rule"></div>
+
+    <p class="hero-sub" style="margin-bottom:.6rem">Consultora Digital</p>
+
+    <p class="hero-tagline">Diseño rápido.<br><span class="ht-dim">Impacto real.</span></p>
+
+    <p class="hero-founders">Sergio Restrepo Prado &nbsp;&middot;&nbsp; Juan Esteban Velasco</p>
+
+  </div>
+</section>
+
+<section class="scene-section obj-section" id="s-obj" data-screen-label="Objetivo">
+  <div class="content obj-wrap">
+    <p class="label">Objetivo General</p>
+    <h2 style="margin-bottom:.85rem">Validación de la <span class="dim">viabilidad</span><br>de JERS</h2>
+    <p class="obj-statement">Determinar la viabilidad comercial de JERS como consultora de soluciones digitales en el mercado colombiano de pymes.</p>
+  </div>
+</section>
+
+<section class="scene-section" id="s1" data-screen-label="Oportunidad">
+  <div class="content">
+    <p class="label">Oportunidad · Contexto de mercado</p>
+    <h2>De la necesidad<br>a la <span class="dim">oportunidad</span></h2>
+    <p>+1.8 millones de pymes en Colombia con presencia digital deficiente o nula. Un mercado enorme esperando ser atendido.</p>
+    <div class="facts">
+      <div class="fact-box"><div class="num ac">55%</div><div class="lbl">sin sitio web funcional</div></div>
+      <div class="fact-box"><div class="num">78%</div><div class="lbl">dificultades para implementar TI</div></div>
+      <div class="fact-box"><div class="num ac">$2–5B</div><div class="lbl">TAM estimado en COP</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene-section" id="s4" data-screen-label="Propuesta de Valor">
+  <div class="content">
+    <p class="label">Propuesta de Valor</p>
+    <h2>Lo que <span class="dim">ofrecemos</span></h2>
+    <p>Análisis estratégico + diseño UX/UI + desarrollo con IA. Un proceso claro, rápido y personalizado.</p>
+    <ul class="detail-list">
+      <li><strong class="ac">UX real</strong> — Diseño centrado en el usuario real</li>
+      <li><strong class="ac">AI-first</strong> — Proceso automatizado con inteligencia artificial</li>
+      <li><strong>Entrega</strong> — Sprints de 1–2 semanas por entregable</li>
+      <li><strong>Menor costo</strong> — Calidad de agencia · Precio de freelancer</li>
+      <li><strong>Acompañamiento</strong> — Cerca del cliente en cada etapa del proceso</li>
+    </ul>
+  </div>
+</section>
+
+<section class="scene-section" id="s-dif" data-screen-label="Diferenciación">
+  <div class="content">
+    <p class="label">Diferenciación</p>
+    <h2>Diferenciadores<br><span class="dim">puntuales</span></h2>
+    <p>Tres ventajas claras que nos separan de agencias y freelancers.</p>
+    <ul class="detail-list">
+      <li><strong class="ac">Entrega rápida</strong> — Sprints de 1–2 semanas por entregable, resultados en días</li>
+      <li><strong class="ac">Escalabilidad</strong> — Soluciones que crecen con el negocio, sin rehacer desde cero</li>
+      <li><strong class="ac">Bajo costo</strong> — Calidad de agencia a precio de freelancer, sin sobrecostos</li>
+    </ul>
+  </div>
+</section>
+
+<section class="scene-section" id="s8" data-screen-label="Precio vs Calidad">
+  <div class="content cc-full">
+    <div>
+      <p class="label">Posicionamiento · Mapa de mercado</p>
+      <h2 class="cc-title">Precio vs <span class="dim">Calidad</span></h2>
+      <p class="cc-sub">JERS ocupa el punto óptimo: alta calidad de agencia a precio accesible.</p>
+    </div>
+    <svg id="ccsvg9" class="cc-svg" viewBox="0 0 500 290" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <filter id="jglow9" x="-120%" y="-120%" width="340%" height="340%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="b"/>
+          <feFlood flood-color="#5cb3ff" flood-opacity=".55" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- Grid -->
+      <line class="cc-grid" x1="70" y1="102" x2="455" y2="102" stroke-dasharray="4,6"/>
+      <line class="cc-grid" x1="70" y1="178" x2="455" y2="178" stroke-dasharray="4,6"/>
+      <line class="cc-grid" x1="200" y1="22" x2="200" y2="268" stroke-dasharray="4,6"/>
+      <line class="cc-grid" x1="328" y1="22" x2="328" y2="268" stroke-dasharray="4,6"/>
+      <!-- Axes -->
+      <line class="cc-axis" x1="70" y1="268" x2="455" y2="268"/>
+      <line class="cc-axis" x1="70" y1="22" x2="70" y2="268"/>
+      <!-- Axis labels -->
+      <text class="cc-axis-lbl" x="75" y="282">Bajo</text>
+      <text class="cc-axis-lbl" x="450" y="282" text-anchor="end">Alto</text>
+      <text class="cc-axis-title" x="263" y="295" text-anchor="middle">PRECIO →</text>
+      <text class="cc-axis-lbl" x="64" y="26" text-anchor="end">Alta</text>
+      <text class="cc-axis-lbl" x="64" y="267" text-anchor="end">Baja</text>
+      <text class="cc-axis-title" x="14" y="145" text-anchor="middle" transform="rotate(-90,14,145)">CALIDAD →</text>
+      <!-- Market curve (normal: pagar más = más calidad) -->
+      <polyline class="cc-market" points="124,243 244,148 400,44"/>
+      <!-- JERS constellation lines -->
+      <line class="cc-jline" x1="168" y1="36" x2="124" y2="243"/>
+      <line class="cc-jline" x1="168" y1="36" x2="244" y2="148"/>
+      <line class="cc-jline" x1="168" y1="36" x2="400" y2="44"/>
+      <!-- Sweet spot halo -->
+      <circle cx="168" cy="36" r="38" fill="rgba(92,179,255,.04)" stroke="none"/>
+      <!-- Competitor dots -->
+      <circle class="cc-comp" cx="124" cy="243" r="5.5" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.32)" stroke-width="1.5"/>
+      <circle class="cc-comp" cx="244" cy="148" r="5.5" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.32)" stroke-width="1.5"/>
+      <circle class="cc-comp" cx="400" cy="44"  r="6"   fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.32)" stroke-width="1.5"/>
+      <!-- JERS star -->
+      <circle class="cc-dot-jers" cx="168" cy="36" r="14" fill="rgba(92,179,255,.11)" stroke="#5cb3ff" stroke-width="1.5" filter="url(#jglow9)"/>
+      <circle class="cc-dot-jers cc-dot-jers-inner" cx="168" cy="36" r="5" fill="#5cb3ff"/>
+      <!-- Competitor labels -->
+      <text class="cc-lbl-comp" x="134" y="232">Plantillas</text>
+      <text class="cc-lbl-sub" x="134" y="244">$0–$200 · básico</text>
+      <text class="cc-lbl-comp" x="254" y="165">Freelancers</text>
+      <text class="cc-lbl-sub" x="254" y="177">$500–$2K · variable</text>
+      <text class="cc-lbl-comp" x="410" y="40">Agencias</text>
+      <text class="cc-lbl-sub" x="410" y="52">$5K–$20K+</text>
+      <!-- JERS label -->
+      <text class="cc-lbl-jm" x="186" y="32">JERS ✦</text>
+      <text class="cc-lbl-js" x="186" y="48">Alta calidad · $1K–$3K</text>
+    </svg>
+  </div>
+</section>
+
+<section class="scene-section" id="s9" data-screen-label="Precio vs Velocidad">
+  <div class="content cc-full">
+    <div>
+      <p class="label">Posicionamiento · Mapa de mercado</p>
+      <h2 class="cc-title">Precio vs <span class="dim">Velocidad</span></h2>
+      <p class="cc-sub">Entrega rápida a precio accesible — el diferencial que cierra negocios.</p>
+    </div>
+    <svg id="ccsvg10" class="cc-svg" viewBox="0 0 500 290" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <filter id="jglow10" x="-120%" y="-120%" width="340%" height="340%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="b"/>
+          <feFlood flood-color="#5cb3ff" flood-opacity=".55" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- Grid -->
+      <line class="cc-grid" x1="70" y1="102" x2="455" y2="102" stroke-dasharray="4,6"/>
+      <line class="cc-grid" x1="70" y1="178" x2="455" y2="178" stroke-dasharray="4,6"/>
+      <line class="cc-grid" x1="200" y1="22" x2="200" y2="268" stroke-dasharray="4,6"/>
+      <line class="cc-grid" x1="328" y1="22" x2="328" y2="268" stroke-dasharray="4,6"/>
+      <!-- Axes -->
+      <line class="cc-axis" x1="70" y1="268" x2="455" y2="268"/>
+      <line class="cc-axis" x1="70" y1="22" x2="70" y2="268"/>
+      <!-- Axis labels -->
+      <text class="cc-axis-lbl" x="75" y="282">Bajo</text>
+      <text class="cc-axis-lbl" x="450" y="282" text-anchor="end">Alto</text>
+      <text class="cc-axis-title" x="263" y="295" text-anchor="middle">PRECIO →</text>
+      <text class="cc-axis-lbl" x="64" y="26" text-anchor="end">Rápida</text>
+      <text class="cc-axis-lbl" x="64" y="267" text-anchor="end">Lenta</text>
+      <text class="cc-axis-title" x="14" y="145" text-anchor="middle" transform="rotate(-90,14,145)">VELOCIDAD →</text>
+      <!-- Market curve / competitor cluster -->
+      <polyline class="cc-market" points="404,252 352,142 244,158"/>
+      <!-- JERS constellation lines -->
+      <line class="cc-jline" x1="168" y1="38" x2="404" y2="252"/>
+      <line class="cc-jline" x1="168" y1="38" x2="352" y2="142"/>
+      <line class="cc-jline" x1="168" y1="38" x2="244" y2="158"/>
+      <!-- Sweet spot halo -->
+      <circle cx="168" cy="38" r="38" fill="rgba(92,179,255,.04)" stroke="none"/>
+      <!-- Competitor dots -->
+      <circle class="cc-comp" cx="404" cy="252" r="6"   fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.32)" stroke-width="1.5"/>
+      <circle class="cc-comp" cx="352" cy="142" r="5.5" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.32)" stroke-width="1.5"/>
+      <circle class="cc-comp" cx="244" cy="158" r="5.5" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.32)" stroke-width="1.5"/>
+      <!-- JERS star -->
+      <circle class="cc-dot-jers" cx="168" cy="38" r="14" fill="rgba(92,179,255,.11)" stroke="#5cb3ff" stroke-width="1.5" filter="url(#jglow10)"/>
+      <circle class="cc-dot-jers cc-dot-jers-inner" cx="168" cy="38" r="5" fill="#5cb3ff"/>
+      <!-- Competitor labels -->
+      <text class="cc-lbl-comp" x="392" y="238" text-anchor="end">Agencias trad.</text>
+      <text class="cc-lbl-sub" x="392" y="250" text-anchor="end">$5K–$20K · 2–6 meses</text>
+      <text class="cc-lbl-comp" x="342" y="126" text-anchor="end">Boutique UX</text>
+      <text class="cc-lbl-sub" x="342" y="114" text-anchor="end">$3K–$8K · 4–8 sem.</text>
+      <text class="cc-lbl-comp" x="254" y="173">Freelancers</text>
+      <text class="cc-lbl-sub" x="254" y="185">$500–$2K · variable</text>
+      <!-- JERS label -->
+      <text class="cc-lbl-jm" x="186" y="34">JERS ✦</text>
+      <text class="cc-lbl-js" x="186" y="50">2–4 semanas · $1K–$3K</text>
+    </svg>
+  </div>
+</section>
+
+<section class="scene-section" id="s-mkt" data-screen-label="Mercado Objetivo">
+  <div class="content bp-full">
+    <div>
+      <p class="label">Mercado Objetivo · Adoptadores Tempranos</p>
+      <h2 style="margin-bottom:.3rem">Buyer <span class="dim">Personas</span></h2>
+      <p style="font-size:.92rem;color:rgba(255,255,255,.48);margin:0">Tres perfiles del mercado colombiano que reconocen el problema y están listos para actuar.</p>
+    </div>
+    <div class="bp-cards">
+
+      <div class="bp-card">
+        <div class="bp-num">01</div>
+        <div class="bp-age">25–38 años · Emprendedor colombiano</div>
+        <h3 class="bp-name">El emprendedor que intentó hacerlo solo</h3>
+        <p class="bp-desc">Ya gastó en plantillas o freelancers sin resultado. Necesita presencia digital sin volver a arriesgar dinero.</p>
+        <div class="bp-traits">
+          <span class="bp-trait">Diagnóstico gratis</span>
+          <span class="bp-trait">Sin riesgo</span>
+          <span class="bp-trait">Transparencia</span>
+        </div>
+        <div class="bp-fear">
+          <span class="bp-fear-lbl">Miedo</span>
+          <span class="bp-fear-txt">Pagar por algo que no funcione</span>
+        </div>
+      </div>
+
+      <div class="bp-card bp-card-mid">
+        <div class="bp-num">02</div>
+        <div class="bp-age">22–32 años · Startup colombiana</div>
+        <h3 class="bp-name">El fundador que valora la velocidad</h3>
+        <p class="bp-desc">Entiende IA, usa herramientas digitales y necesita resultados esta semana, no en tres meses.</p>
+        <div class="bp-traits">
+          <span class="bp-trait">Co-Growth</span>
+          <span class="bp-trait">IA real</span>
+          <span class="bp-trait">Velocidad</span>
+        </div>
+        <div class="bp-fear">
+          <span class="bp-fear-lbl">Miedo</span>
+          <span class="bp-fear-txt">Quedarse atrás frente a competidores ágiles</span>
+        </div>
+      </div>
+
+      <div class="bp-card">
+        <div class="bp-num">03</div>
+        <div class="bp-age">35–55 años · Empresa familiar Colombia</div>
+        <h3 class="bp-name">El gerente que quiere modernizarse</h3>
+        <p class="bp-desc">Ventas reales, nula presencia digital. Quiere que le expliquen claro y que no lo dejen solo tras la entrega.</p>
+        <div class="bp-traits">
+          <span class="bp-trait">Sin tecnicismos</span>
+          <span class="bp-trait">Acompañamiento</span>
+          <span class="bp-trait">ROI claro</span>
+        </div>
+        <div class="bp-fear">
+          <span class="bp-fear-lbl">Miedo</span>
+          <span class="bp-fear-txt">Invertir y no ver cambio en las ventas</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="scene-section" id="s5" data-screen-label="Recorrido del Cliente">
+  <div class="content jmap-full">
+
+    <!-- Cabecera + progreso -->
+    <div class="jmap-header">
+      <div>
+        <p class="label">Recorrido del cliente</p>
+        <h2 class="jmap-title">Recorrido del <span class="dim">cliente</span></h2>
+      </div>
+      <div class="jprog" id="jprog">
+        <div class="jprog-top">
+          <span class="jprog-num" id="jprog-num">0</span>
+          <span class="jprog-denom">/ 10 etapas</span>
+        </div>
+        <div class="jprog-bar"><div class="jprog-fill" id="jprog-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Etiquetas de fase -->
+    <div class="jphases" id="jphases">
+      <div class="jphase" id="jph0" style="flex:3">Adquisición</div>
+      <div class="jphase" id="jph1" style="flex:2">Cierre</div>
+      <div class="jphase" id="jph2" style="flex:2">Diseño &amp; Dev</div>
+      <div class="jphase" id="jph3" style="flex:3">Entrega &amp; Growth</div>
+    </div>
+
+    <!-- Mapa snake -->
+    <div class="jmap10" id="jmap10">
+      <!-- Fila 1: pasos 1 → 5 -->
+      <div class="jrow10">
+        <div class="jstep10" id="jstep1"><div class="ji10 ji10a">1</div><p class="jl10">Landing</p><p class="jt10">Contacto</p></div>
+        <div class="jconn10h" id="jconn12"></div>
+        <div class="jstep10" id="jstep2"><div class="ji10 ji10a">2</div><p class="jl10">Diagnóstico</p><p class="jt10">Análisis</p></div>
+        <div class="jconn10h" id="jconn23"></div>
+        <div class="jstep10" id="jstep3"><div class="ji10 ji10a">3</div><p class="jl10">IA Preview</p><p class="jt10">Propuesta</p></div>
+        <div class="jconn10h" id="jconn34"></div>
+        <div class="jstep10" id="jstep4"><div class="ji10 ji10a">4</div><p class="jl10">Cotización</p><p class="jt10">Presupuesto</p></div>
+        <div class="jconn10h" id="jconn45"></div>
+        <div class="jstep10" id="jstep5"><div class="ji10 ji10a">5</div><p class="jl10">Contrato</p><p class="jt10">Acuerdo</p></div>
+      </div>
+      <!-- Esquina vertical derecha: paso 5 ↓ paso 6 -->
+      <div class="jmap-corner"><div class="jconn10v" id="jconnv"></div></div>
+      <!-- Fila 2: flujo 6→10, visualmente 10…6 de izq a der -->
+      <div class="jrow10 jrev">
+        <div class="jstep10" id="jstep10"><div class="ji10 ji10g">10</div><p class="jl10">Fidelización</p><p class="jt10">Suscripción</p></div>
+        <div class="jconn10h" id="jconn910"></div>
+        <div class="jstep10" id="jstep9"><div class="ji10 ji10w">9</div><p class="jl10">Entrega</p><p class="jt10">Lanzamiento</p></div>
+        <div class="jconn10h" id="jconn89"></div>
+        <div class="jstep10" id="jstep8"><div class="ji10 ji10w">8</div><p class="jl10">QA</p><p class="jt10">Validación</p></div>
+        <div class="jconn10h" id="jconn78"></div>
+        <div class="jstep10" id="jstep7"><div class="ji10 ji10w">7</div><p class="jl10">Desarrollo</p><p class="jt10">Construcción</p></div>
+        <div class="jconn10h" id="jconn67"></div>
+        <div class="jstep10" id="jstep6"><div class="ji10 ji10w">6</div><p class="jl10">Diseño UX</p><p class="jt10">Prototipado</p></div>
+      </div>
+    </div>
+
+    <div class="jdesc10" id="jdesc10"></div>
+    <button class="jnext-hint pulse" id="jnext" onclick="journeyNext()">Siguiente etapa &nbsp;<span id="jcounter">1&thinsp;/&thinsp;10</span> →</button>
+
+  </div>
+</section>
+
+<section class="scene-section" id="s6" data-screen-label="MVP">
+  <div class="content demo-full">
+
+    <!-- Izquierda: título + QR -->
+    <div class="demo-left">
+      <p class="label">MVP · Demostración en vivo</p>
+      <h2 class="demo-title">Proceso del<br><span class="dim">cliente</span></h2>
+      <div class="demo-qr-wrap">
+        <img class="demo-qr-img"
+          src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://jers.com.co&color=5cb3ff&bgcolor=010812"
+          alt="QR jers.com.co" />
+        <a class="demo-qr-url" href="https://jers.com.co" target="_blank" rel="noopener">jers.com.co</a>
+      </div>
+    </div>
+
+    <!-- Derecha: video YouTube -->
+    <!-- Video embed directo -->
+    <div class="demo-video" id="demoVideoWrap">
+      <iframe
+        id="demoIframe"
+        src="https://www.youtube-nocookie.com/embed/yp7R-9AROVU?rel=0&modestbranding=1&color=white"
+        title="Demo JERS"
+        frameborder="0"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowfullscreen
+        style="position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:14px">
+      </iframe>
+      <button class="demo-fs-btn" id="fsBtnDemo" onclick="enterDemoFS()" title="Pantalla completa">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15,3 21,3 21,9"></polyline>
+          <polyline points="9,21 3,21 3,15"></polyline>
+          <line x1="21" y1="3" x2="14" y2="10"></line>
+          <line x1="3" y1="21" x2="10" y2="14"></line>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<section class="scene-section" id="s3" data-screen-label="Validación">
+  <div class="content">
+    <p class="label">Validación</p>
+    <h2>Validaciones de<br><span class="dim">clientes</span></h2>
+    <ul class="detail-list">
+      <li><strong class="ac">Kilele Colombian Joy</strong> · En proceso<br>"Agiliza la gestión del Brief, eliminando reuniones innecesarias."<br><span class="quote-author">— Manuel Tobar · Cofundador, 3IN Empresarial</span></li>
+      <li><strong class="ac">CertiOrange</strong> · En proceso · <span style="color:rgba(255,255,255,.45);font-size:.9em">3 días</span><br>"La experiencia con IA es intuitiva y moderna."<br><span class="quote-author">— Erney Andrade · PM &amp; Fundador, CertiOrange</span></li>
+      <li><strong class="ac">La Tienda de Maquillaje</strong> · En proceso · <span style="color:rgba(255,255,255,.45);font-size:.9em">1 día</span><br>"El proceso de cotización es cómodo y eficiente."<br><span class="quote-author">— Violeta Ossa · Socia Comercial &amp; Cofundadora, La Tienda de Maquillaje</span></li>
+  </div>
+</section>
+
+<section class="scene-section" id="s7" data-screen-label="Mercadeo">
+  <div class="content res-wrap">
+    <p class="label">Mercadeo · Estrategia de captación</p>
+    <h2 style="margin-bottom:.5rem">Antes <span class="dim">vs</span> Después</h2>
+    <p style="max-width:64ch;margin-bottom:1.3rem;color:rgba(255,255,255,.62)">Nuestro motor de captación: contenido y publicidad automatizados con IA. Así atraemos y convertimos clientes.</p>
+
+    <div class="res-cards">
+
+      <!-- ── ANTES ── -->
+      <div class="res-card res-before">
+        <div class="res-badge res-badge-before">ANTES</div>
+        <div class="res-period">Período de validación inicial</div>
+
+        <div class="res-group">
+          <div class="res-ch">Sitio Web</div>
+          <div class="res-row"><span class="res-val">36</span><span class="res-meta">usuarios activos</span></div>
+          <div class="res-row"><span class="res-val">2m 35s</span><span class="res-meta">tiempo promedio en página</span></div>
+        </div>
+
+        <div class="res-group">
+          <div class="res-ch">Redes Sociales</div>
+          <div class="res-row"><span class="res-val">2.257</span><span class="res-meta">visualizaciones totales</span></div>
+          <div class="res-row"><span class="res-val">90</span><span class="res-meta">interacciones registradas</span></div>
+        </div>
+
+        <div class="res-group">
+          <div class="res-ch">Publicidad</div>
+          <div class="res-row"><span class="res-val">4.249</span><span class="res-meta">impresiones · prototipo IA</span></div>
+          <div class="res-row"><span class="res-val">60</span><span class="res-meta">clics · COP $280 invertidos</span></div>
+        </div>
+      </div>
+
+      <!-- ── DESPUÉS ── -->
+      <div class="res-card res-after">
+        <div class="res-badge res-badge-after">AHORA · Con IA</div>
+        <div class="res-period">8 may – 6 jun 2026 · 30 días</div>
+
+        <div class="res-group">
+          <div class="res-ch">Sitio Web <span class="res-src">Google Analytics</span></div>
+          <div class="res-row">
+            <span class="res-val res-glow">99</span>
+            <span class="res-meta">usuarios activos</span>
+            <span class="res-delta up">+175%</span>
+          </div>
+          <div class="res-row">
+            <span class="res-val res-glow">161</span>
+            <span class="res-meta">vistas de página</span>
+          </div>
+        </div>
+
+        <div class="res-group">
+          <div class="res-ch">Redes Sociales <span class="res-src">IG + FB + LinkedIn · 30 días</span></div>
+          <div class="res-row">
+            <span class="res-val res-glow">8.252</span>
+            <span class="res-meta">visualizaciones totales</span>
+            <span class="res-delta up">+265%</span>
+          </div>
+          <div class="res-row">
+            <span class="res-val res-glow">146</span>
+            <span class="res-meta">interacciones registradas</span>
+            <span class="res-delta up">+62%</span>
+          </div>
+        </div>
+
+        <div class="res-group">
+          <div class="res-ch">Publicidad <span class="res-src">Facebook Ads · 30 días</span></div>
+          <div class="res-row">
+            <span class="res-val res-glow">5.357</span>
+            <span class="res-meta">impresiones · CTR 2.05%</span>
+          </div>
+          <div class="res-row">
+            <span class="res-val res-glow">110</span>
+            <span class="res-meta">clics · COP $16.348 invertidos</span>
+            <span class="res-delta up">+83%</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /res-cards -->
+
+    <div class="res-tools">
+      <span class="res-tools-lbl">Herramientas</span>
+      <div class="res-tools-chips">
+        <span class="res-tool-chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg>
+          Claude
+        </span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="scene-section" id="s11" data-screen-label="Modelo de Negocio">
+  <div class="content">
+    <p class="label">Modelo de Negocio</p>
+    <h2>Fuentes de <span class="dim">ingreso</span></h2>
+    <p>Tres líneas complementarias y escalables desde el primer mes de operación.</p>
+    <ul class="detail-list">
+      <li><strong class="ac">Proyectos</strong> — Webs a medida · $1K–$3K por proyecto</li>
+      <li><strong>Retainer</strong> — Mantenimiento mensual recurrente</li>
+      <li><strong>Escala</strong> — Sistema replicable a nivel regional</li>
+    </ul>
+  </div>
+</section>
+
+<section class="scene-section" id="s13" data-screen-label="Backlog">
+  <div class="content">
+    <p class="label">Backlog</p>
+    <h2>Backlog por <span class="dim">Drafts</span></h2>
+    <ul class="detail-list">
+      <li><strong class="ac">Draft 1 ✓ Completo</strong><br>Idea de negocio · Propuesta de valor · Modelo de ingresos · Objetivos claros</li>
+      <li><strong class="ac">Draft 2 ✓ Completo</strong><br>Sitio web · Redes sociales · Clientes iniciales · Journey map · Demo con IA</li>
+      <li><strong class="ac">Draft 3 ✓ Completo</strong><br>Automatización IA en redes · Resultados y métricas · Posicionamiento competitivo · Validación del modelo</li>
+    </ul>
+  </div>
+</section>
+
+<section class="scene-section" id="s12" data-screen-label="Qué Viene">
+  <div class="content">
+    <p class="label">Qué Viene</p>
+    <h2>Hacia dónde <span class="dim">vamos</span></h2>
+    <p>Entramos a prácticas en empresa y, en paralelo, construimos el sistema interno de JERS — para retomar con más fuerza y proveer el servicio completo.</p>
+    <ul class="detail-list">
+      <li><strong class="ac">Prácticas en empresa</strong> — Experiencia real mientras maduramos el proyecto</li>
+      <li><strong class="ac">Sistema interno en paralelo</strong> — Builder con IA propio de JERS, en construcción junto a dos ingenieros</li>
+      <li><strong>Retomar con más fuerza</strong> — Volvemos a operar para entregar el servicio completo</li>
+    </ul>
+  </div>
+</section>
+
+<section class="scene-section" id="s14" data-screen-label="Cierre">
+  <div class="content closing-center">
+
+    <svg class="closing-mark" viewBox="0 0 23 47"><use href="#ji"></use></svg>
+
+    <h1 class="closing-title">
+      Construimos sistemas<br>digitales <span class="ct-dim">eficientes.</span>
+    </h1>
+
+    <div class="closing-rule"></div>
+
+    <div class="closing-pillars">
+      <div class="closing-pill">Rápido</div>
+      <div class="closing-pill">Claro</div>
+      <div class="closing-pill">Escalable</div>
+    </div>
+
+    <p class="closing-tag">Diseño rápido · Impacto real</p>
+    <p class="closing-contact">jers.com.co &nbsp;·&nbsp; @consultora_jers &nbsp;·&nbsp; Cali, Colombia</p>
+
+  </div>
+</section>
+</main>
+
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script>
+/* ═══════════ THREE.JS — escenas aisladas, fondo azul ═══════════ */
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('gc'),antialias:true})
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight)
+const scene=new THREE.Scene()
+scene.background=new THREE.Color(0x010812)
+scene.fog=new THREE.Fog(0x010812,40,230)   /* fog ajustado: aísla cada escena, sin bleed */
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,0.1,2000)
+camera.position.set(0,0,40)
+const mouse={x:0,y:0}
+window.addEventListener('mousemove',e=>{mouse.x=(e.clientX/innerWidth-.5)*2;mouse.y=(e.clientY/innerHeight-.5)*2},{passive:true})
+
+/* 20 waypoints generados: cámara SIEMPRE al frente de cada escena, a distancia
+   de encuadre (no vuela adentro). El look-at lateral empuja la escena al lado
+   opuesto del texto. 2 waypoints por escena = paneo suave dentro de cada escena. */
+const WP=[]
+for(let k=0;k<10;k++){
+  const Zk=-300*k
+  WP.push({p:[9,5,Zk+62],  l:[-38,3,Zk]})   /* sección 2k  · texto izq → escena der */
+  WP.push({p:[-9,-4,Zk+50], l:[38,-3,Zk]})   /* sección 2k+1 · texto der → escena izq */
+}
+function lerp(a,b,t){return a+(b-a)*t}
+function ss(t){return t*t*(3-2*t)}
+
+/* ── CROSSFADE POR ESCENA: cada escena solo visible cerca de su waypoint ── */
+const SCENES=[]
+function addScene(group,center){
+  const mats=[]
+  group.traverse(o=>{if(o.material){o.material.transparent=true;mats.push({m:o.material,base:o.material.opacity})}})
+  group.userData={mats,center};SCENES.push(group);scene.add(group)
+}
+/* ── SCENE-PER-SLIDE: 10 escenas mapeadas a 15 slides ──
+   Cada slide tiene asignada una escena. Cuando dos slides comparten escena,
+   raw se mantiene constante → escena 100% estable durante ambos slides.
+   Cuando cambia, raw transiciona suavemente durante ese slide. */
+const SLIDE_SCENE_RAW=[0,0,1,2,2,3,3,4,5,5,6,7,8,8,9,9]
+let sTops=[]
+function refreshTops(){sTops=[...document.querySelectorAll('.scene-section')].map(s=>s.offsetTop)}
+function computeRaw(sy){
+  if(!sTops.length)refreshTops()
+  const n=sTops.length
+  for(let i=0;i<n-1;i++){
+    if(sy>=sTops[i]&&sy<sTops[i+1]){
+      const t=(sy-sTops[i])/(sTops[i+1]-sTops[i])
+      return SLIDE_SCENE_RAW[i]+t*(SLIDE_SCENE_RAW[i+1]-SLIDE_SCENE_RAW[i])
+    }
+  }
+  return SLIDE_SCENE_RAW[n-1]||9
+}
+/* visibilidad completa d≤0.4, desvanece a 0 en d≥0.6 */
+function sceneFade(d){if(d<=0.4)return 1;if(d>=0.6)return 0;return ss(1-(d-0.4)/0.2)}
+
+/* ambient dust — recorre todo el viaje, siempre hay estrellas cerca */
+;(()=>{
+  const N=6000,p=new Float32Array(N*3)
+  for(let i=0;i<N;i++){p[i*3]=(Math.random()-.5)*220;p[i*3+1]=(Math.random()-.5)*220;p[i*3+2]=120-Math.random()*2950}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3))
+  scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xffffff,size:.32,transparent:true,opacity:.55,depthWrite:false,blending:THREE.AdditiveBlending})))
+})()
+
+/* SCENE 0: HERO z=0 */
+let icoRef
+;(()=>{
+  icoRef=new THREE.Mesh(new THREE.IcosahedronGeometry(6,2),new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.09}))
+  const g=new THREE.Group();g.add(icoRef)
+  const N=3000,p=new Float32Array(N*3)
+  for(let i=0;i<N;i++){const r=8+Math.random()*30,th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);p[i*3]=r*Math.sin(ph)*Math.cos(th);p[i*3+1]=r*Math.sin(ph)*Math.sin(th);p[i*3+2]=r*Math.cos(ph)}
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(p,3))
+  g.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:.16,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending})))
+  addScene(g,0)
+})()
+
+/* SCENE 1: STARFIELD z=-300 */
+let starMat,starFieldRef
+;(()=>{
+  starFieldRef=new THREE.Group();starFieldRef.position.z=-300
+  const N=8000,p=new Float32Array(N*3),sz=new Float32Array(N)
+  for(let i=0;i<N;i++){p[i*3]=(Math.random()-.5)*150;p[i*3+1]=(Math.random()-.5)*150;p[i*3+2]=(Math.random()-.5)*150;sz[i]=Math.random()*2.5+.5}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));g.setAttribute('size',new THREE.BufferAttribute(sz,1))
+  starMat=new THREE.ShaderMaterial({uniforms:{uTime:{value:0}},
+    vertexShader:`attribute float size;uniform float uTime;varying float vA;void main(){vA=.3+.7*sin(uTime*.8+position.x*.15+position.y*.15);vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=size*(250./-mv.z);gl_Position=projectionMatrix*mv;}`,
+    fragmentShader:`varying float vA;void main(){float d=length(gl_PointCoord-.5);if(d>.5)discard;float g=1.-smoothstep(.0,.5,d);gl_FragColor=vec4(1.,1.,1.,g*vA);}`,
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})
+  starFieldRef.add(new THREE.Points(g,starMat))
+  for(let i=0;i<14;i++){const s=new THREE.Mesh(new THREE.SphereGeometry(.3+Math.random()*.5,16,16),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));s.position.set((Math.random()-.5)*55,(Math.random()-.5)*55,(Math.random()-.5)*55);starFieldRef.add(s)}
+  addScene(starFieldRef,1)
+})()
+
+/* SCENE 2: GALAXY z=-600 */
+let galaxyPtsRef
+;(()=>{
+  const g=new THREE.Group();g.position.z=-600
+  const N=26000,p=new Float32Array(N*3),c=new Float32Array(N*3),arms=4
+  for(let i=0;i<N;i++){const arm=i%arms,off=(arm/arms)*Math.PI*2,dist=Math.pow(Math.random(),.6)*42,angle=dist*.6+off,sc=(Math.random()-.5)*dist*.25;p[i*3]=Math.cos(angle)*dist+sc;p[i*3+1]=(Math.random()-.5)*42*.03;p[i*3+2]=Math.sin(angle)*dist+sc;const b=1-(dist/42)*.5;c[i*3]=c[i*3+1]=c[i*3+2]=b}
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(p,3));geo.setAttribute('color',new THREE.BufferAttribute(c,3))
+  galaxyPtsRef=new THREE.Points(geo,new THREE.PointsMaterial({size:.13,vertexColors:true,transparent:true,opacity:.6,depthWrite:false,blending:THREE.AdditiveBlending}))
+  galaxyPtsRef.rotation.x=Math.PI*.35;g.add(galaxyPtsRef)
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(2,32,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.18})))
+  addScene(g,2)
+})()
+
+/* SCENE 3: NEBULA z=-900 (NUEVA) */
+let nebRef
+;(()=>{
+  const ng=new THREE.Group();ng.position.z=-900
+  const N=11000,p=new Float32Array(N*3),c=new Float32Array(N*3)
+  for(let i=0;i<N;i++){
+    const r=Math.pow(Math.random(),1.7)*26,th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1)
+    p[i*3]=r*Math.sin(ph)*Math.cos(th)+(Math.random()-.5)*8;p[i*3+1]=r*Math.sin(ph)*Math.sin(th)*.6;p[i*3+2]=r*Math.cos(ph)
+    const t=Math.random()
+    if(t<.5){c[i*3]=.5;c[i*3+1]=.76;c[i*3+2]=1.0}else if(t<.84){c[i*3]=.85;c[i*3+1]=.93;c[i*3+2]=1.0}else{c[i*3]=.36;c[i*3+1]=.58;c[i*3+2]=1.0}
+  }
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(p,3));geo.setAttribute('color',new THREE.BufferAttribute(c,3))
+  nebRef=new THREE.Points(geo,new THREE.PointsMaterial({size:.16,vertexColors:true,transparent:true,opacity:.82,depthWrite:false,blending:THREE.AdditiveBlending}))
+  ng.add(nebRef)
+  ng.add(new THREE.Mesh(new THREE.SphereGeometry(2.4,32,32),new THREE.MeshBasicMaterial({color:0x9ec9ff,transparent:true,opacity:.32})))
+  addScene(ng,3)
+})()
+
+/* SCENE 4: SOLAR SYSTEM z=-1200 */
+const planetsData=[{r:.5,d:8,s:1.4,c:0x999999,ring:false},{r:.8,d:12,s:.9,c:0x777777,ring:false},{r:1,d:17,s:.6,c:0x888888,ring:false},{r:.6,d:22,s:.4,c:0xaaaaaa,ring:false},{r:2,d:30,s:.25,c:0x666666,ring:true},{r:1.7,d:38,s:.18,c:0x555555,ring:true},{r:1.2,d:45,s:.12,c:0x777777,ring:false},{r:1,d:52,s:.08,c:0x888888,ring:false}]
+const planetGroups=[]
+;(()=>{
+  const sg=new THREE.Group();sg.position.z=-1200
+  sg.add(new THREE.Mesh(new THREE.SphereGeometry(4,32,32),new THREE.MeshBasicMaterial({color:0xdddddd})))
+  sg.add(new THREE.Mesh(new THREE.SphereGeometry(5.5,32,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06})))
+  planetsData.forEach((pd,idx)=>{
+    const pg=new THREE.Group()
+    pg.add(new THREE.Mesh(new THREE.SphereGeometry(pd.r,24,24),new THREE.MeshStandardMaterial({color:pd.c,roughness:.8,metalness:.1})))
+    if(pd.ring){const rm=new THREE.Mesh(new THREE.RingGeometry(pd.r*1.5,pd.r*2.3,48),new THREE.MeshBasicMaterial({color:0x888888,side:THREE.DoubleSide,transparent:true,opacity:.25}));rm.rotation.x=Math.PI*.45;pg.add(rm)}
+    const pts=[];for(let i=0;i<=100;i++){const a=(i/100)*Math.PI*2;pts.push(new THREE.Vector3(Math.cos(a)*pd.d,0,Math.sin(a)*pd.d))}
+    sg.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x335577,transparent:true,opacity:.22})))
+    sg.add(pg);planetGroups.push({pg,pd,idx})
+  })
+  addScene(sg,4)
+})()
+
+/* SCENE 5: TIME z=-1500 */
+const timeHands=[]
+;(()=>{
+  const tg=new THREE.Group();tg.position.z=-1500
+  const rings=[...Array(12)].map((_,i)=>({radius:4+i*2,opacity:.05+i*.015,rotX:Math.PI/2+(i%2?.05:-.05),rotZ:i*.15}))
+  rings.forEach(r=>{const m=new THREE.Mesh(new THREE.TorusGeometry(r.radius,.04,8,100),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:r.opacity}));m.rotation.x=r.rotX;m.rotation.z=r.rotZ;tg.add(m)})
+  for(let i=0;i<3;i++){const h=new THREE.Group();const m=new THREE.Mesh(new THREE.BoxGeometry(.08,8+i*5,.08),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.2-i*.05}));m.position.y=(8+i*5)/2;h.add(m);tg.add(h);timeHands.push(h)}
+  const N=4000,sp=new Float32Array(N*3);for(let i=0;i<N;i++){const t=(i/N)*Math.PI*12,r=2+t*.8;sp[i*3]=Math.cos(t)*r;sp[i*3+1]=(i/N-.5)*40;sp[i*3+2]=Math.sin(t)*r}
+  const sgg=new THREE.BufferGeometry();sgg.setAttribute('position',new THREE.BufferAttribute(sp,3))
+  tg.add(new THREE.Points(sgg,new THREE.PointsMaterial({color:0xffffff,size:.1,transparent:true,opacity:.4,depthWrite:false,blending:THREE.AdditiveBlending})))
+  addScene(tg,5)
+})()
+
+/* SCENE 6: RELATIVITY z=-1800 */
+let massRef,relRef
+;(()=>{
+  const rg=new THREE.Group();relRef=rg;rg.position.z=-1800
+  const gridGeo=new THREE.PlaneGeometry(60,60,40,40),pos=gridGeo.attributes.position
+  for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i),dist=Math.sqrt(x*x+y*y);pos.setZ(i,dist<15?-8*Math.pow(1-dist/15,2):0)}
+  gridGeo.computeVertexNormals()
+  const grid=new THREE.Mesh(gridGeo,new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.11}))
+  grid.rotation.x=-Math.PI*.45;rg.add(grid)
+  massRef=new THREE.Mesh(new THREE.SphereGeometry(2.5,32,32),new THREE.MeshStandardMaterial({color:0x999999,roughness:.5,metalness:.3,emissive:new THREE.Color(0x223344)}))
+  massRef.position.set(0,-3,5);rg.add(massRef);addScene(rg,6)
+})()
+
+/* SCENE 7: WORMHOLE z=-2100 */
+const wormRings=[]
+;(()=>{
+  const wg=new THREE.Group();wg.position.z=-2100
+  const N=5000,tp=new Float32Array(N*3)
+  for(let i=0;i<N;i++){const t=Math.random(),a=Math.random()*Math.PI*2,r=3+Math.sin(t*Math.PI)*8+(Math.random()-.5)*2;tp[i*3]=Math.cos(a)*r;tp[i*3+1]=Math.sin(a)*r;tp[i*3+2]=-t*120}
+  const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(tp,3))
+  wg.add(new THREE.Points(tg,new THREE.PointsMaterial({color:0xffffff,size:.08,transparent:true,opacity:.32,depthWrite:false,blending:THREE.AdditiveBlending})))
+  for(let i=0;i<40;i++){const r=new THREE.Mesh(new THREE.TorusGeometry(3+Math.sin((i/40)*Math.PI)*8,.05,8,80),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.04+(i/40)*.12}));r.position.z=-i*3;wg.add(r);wormRings.push(r)}
+  addScene(wg,7)
+})()
+
+/* SCENE 8: BLACK HOLE z=-2400 */
+let diskRef
+;(()=>{
+  const bg=new THREE.Group();bg.position.z=-2400
+  bg.add(new THREE.Mesh(new THREE.SphereGeometry(5,48,48),new THREE.MeshBasicMaterial({color:0x000000})))
+  const N=16000,dp=new Float32Array(N*3),dc=new Float32Array(N*3)
+  for(let i=0;i<N;i++){const a=Math.random()*Math.PI*2,r=6+Math.random()*18,h=(Math.random()-.5)*.5*(1+r*.02);dp[i*3]=Math.cos(a)*r;dp[i*3+1]=h;dp[i*3+2]=Math.sin(a)*r;const b=Math.max(0,1-((r-6)/18)*.8);dc[i*3]=dc[i*3+1]=dc[i*3+2]=b}
+  const dg=new THREE.BufferGeometry();dg.setAttribute('position',new THREE.BufferAttribute(dp,3));dg.setAttribute('color',new THREE.BufferAttribute(dc,3))
+  diskRef=new THREE.Points(dg,new THREE.PointsMaterial({size:.12,vertexColors:true,transparent:true,opacity:.75,depthWrite:false,blending:THREE.AdditiveBlending}))
+  diskRef.rotation.x=Math.PI*.3;bg.add(diskRef)
+  bg.add(new THREE.Mesh(new THREE.TorusGeometry(7,.15,16,100),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.22})))
+  bg.add(new THREE.Mesh(new THREE.TorusGeometry(5.5,.5,16,100),new THREE.MeshBasicMaterial({color:0x223344,transparent:true,opacity:.16})))
+  addScene(bg,8)
+})()
+
+/* SCENE 9: BEYOND z=-2700 */
+const beyondBubbles=[]
+;(()=>{
+  const gg=new THREE.Group();gg.position.z=-2700
+  const bData=[...Array(20)].map((_,i)=>({r:2+Math.random()*6,detail:i<5?2:1,opacity:.04+Math.random()*.07,pos:[(Math.random()-.5)*60,(Math.random()-.5)*40,(Math.random()-.5)*60]}))
+  bData.forEach(b=>{const m=new THREE.Mesh(new THREE.IcosahedronGeometry(b.r,b.detail),new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:b.opacity}));m.position.set(...b.pos);gg.add(m);beyondBubbles.push(m)})
+  for(let i=0;i<10;i++){const a=bData[Math.floor(Math.random()*bData.length)],b=bData[Math.floor(Math.random()*bData.length)];if(a===b)continue;const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.BufferAttribute(new Float32Array([...a.pos,...b.pos]),3));gg.add(new THREE.Line(lg,new THREE.LineBasicMaterial({color:0x5cb3ff,transparent:true,opacity:.06})))}
+  const N=3000,ap=new Float32Array(N*3);for(let i=0;i<N;i++){ap[i*3]=(Math.random()-.5)*100;ap[i*3+1]=(Math.random()-.5)*80;ap[i*3+2]=(Math.random()-.5)*100}
+  const ag=new THREE.BufferGeometry();ag.setAttribute('position',new THREE.BufferAttribute(ap,3))
+  gg.add(new THREE.Points(ag,new THREE.PointsMaterial({color:0xffffff,size:.09,transparent:true,opacity:.35,depthWrite:false,blending:THREE.AdditiveBlending})))
+  addScene(gg,9)
+})()
+
+scene.add(new THREE.AmbientLight(0x445566,.5))
+const dl=new THREE.DirectionalLight(0xffffff,.85);dl.position.set(20,30,20);scene.add(dl)
+
+/* ── NAVIGATION ── */
+const TOTAL=16;let activeSec=0,lastY=0
+const navEl=document.getElementById('nv'),dotsEl=document.getElementById('dots')
+for(let i=0;i<TOTAL;i++){const b=document.createElement('button');b.className='dot';b.title='Sección '+(i+1);b.onclick=()=>navTo(i);dotsEl.appendChild(b)}
+function navTo(n){n=Math.max(0,Math.min(TOTAL-1,n));const sections=document.querySelectorAll('.scene-section');const el=sections[n];if(el)window.scrollTo({top:el.offsetTop,behavior:'smooth'})}
+function updateUI(){
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===activeSec))
+  document.getElementById('nc').textContent=String(activeSec+1).padStart(2,'0')+' / 16'
+  const dH=document.documentElement.scrollHeight-innerHeight
+  document.getElementById('pb').style.width=(dH>0?window.scrollY/dH*100:0)+'%'
+}
+window.addEventListener('scroll',()=>{
+  const sy=window.scrollY
+  navEl.classList.remove('hidden');lastY=sy
+  let cur=0;document.querySelectorAll('.scene-section').forEach((s,i)=>{if(sy>=s.offsetTop-innerHeight*.5)cur=i})
+  activeSec=cur;updateUI();localStorage.setItem('jers-s',sy)
+},{passive:true})
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'||e.key===' '||e.key==='ArrowRight'){
+    e.preventDefault()
+    if(activeSec===JOURNEY_IDX&&!jComplete){journeyNext()}
+    else{navTo(activeSec+1)}
+  }
+  if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();navTo(activeSec-1)}
+})
+/* ── Fullscreen demo video ── */
+function enterDemoFS(){
+  const el=document.getElementById('demoIframe');
+  const wrap=document.getElementById('demoVideoWrap');
+  /* 1. intentar fullscreen nativo sobre el iframe */
+  const fn=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
+  if(fn){try{const p=fn.call(el);if(p&&p.catch)p.catch(()=>fsWrap(wrap));}catch(e){fsWrap(wrap);}return;}
+  /* 2. fallback: agrandar el wrapper a pantalla completa con CSS */
+  fsWrap(wrap);
+}
+function fsWrap(wrap){
+  /* si ya está expandido, contraer */
+  if(wrap.dataset.fs==='1'){
+    wrap.removeAttribute('data-fs');
+    wrap.style.cssText='';
+    document.body.style.overflow='';
+    const btn=document.getElementById('fsBtnDemo');
+    if(btn){btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,3 21,3 21,9"></polyline><polyline points="9,21 3,21 3,15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';btn.onclick=enterDemoFS;}
+    return;
+  }
+  /* expandir */
+  wrap.dataset.fs='1';
+  wrap.style.cssText='position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;max-height:none!important;border-radius:0!important;z-index:9999!important;aspect-ratio:auto!important;';
+  document.body.style.overflow='hidden';
+  const btn=document.getElementById('fsBtnDemo');
+  if(btn){btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,14 4,20 10,20"></polyline><polyline points="20,10 20,4 14,4"></polyline><line x1="4" y1="20" x2="11" y2="13"></line><line x1="20" y1="4" x2="13" y2="11"></line></svg>';btn.onclick=()=>fsWrap(wrap);btn.style.opacity='1';}
+  /* Esc para salir */
+  const escHandler=e=>{if(e.key==='Escape'){fsWrap(wrap);document.removeEventListener('keydown',escHandler);}};
+  document.addEventListener('keydown',escHandler);
+}
+/* cambiar ícono al entrar/salir de fullscreen */
+document.addEventListener('fullscreenchange',()=>{
+  const btn=document.getElementById('fsBtnDemo');if(!btn)return;
+  if(document.fullscreenElement){
+    btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,14 4,20 10,20"></polyline><polyline points="20,10 20,4 14,4"></polyline><line x1="4" y1="20" x2="11" y2="13"></line><line x1="20" y1="4" x2="13" y2="11"></line></svg>';
+    btn.onclick=()=>document.exitFullscreen();
+    btn.style.opacity='1';
+  } else {
+    btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,3 21,3 21,9"></polyline><polyline points="9,21 3,21 3,15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+    btn.onclick=enterDemoFS;
+  }
+});
+window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();refreshTops()})
+
+/* ═══════════ JOURNEY MAP — lógica de pasos ═══════════ */
+const JDESCS=[
+  'El cliente descubre JERS por landing page, redes sociales o referidos.',
+  'Diagnóstico estructurado: entendemos el negocio y sus necesidades reales.',
+  'La IA genera una propuesta visual y funcional preliminar en minutos.',
+  'Definimos alcance, cronograma y precio claro — sin sorpresas ni letra chica.',
+  'Firma de contrato y primer pago: el proyecto arranca oficialmente.',
+  'Wireframes y diseño UX/UI centrado en el usuario final del cliente.',
+  'Desarrollo técnico full-stack con herramientas modernas potenciadas con IA.',
+  'Testing funcional y revisión detallada con el cliente antes de lanzar.',
+  'Publicación y puesta en producción del producto digital.',
+  'Retainer mensual · soporte · iteraciones · crecimiento y upsell continuo.'
+]
+/* fases: índice de fase para cada paso (0-indexed) */
+const JPHASE_IDX=[0,0,0,1,1,2,2,2,3,3]
+/* ids de conectores por paso */
+const JCONNS=[null,'jconn12','jconn23','jconn34','jconn45','jconnv','jconn67','jconn78','jconn89','jconn910']
+
+let jStep=0,jComplete=false
+
+function jSpark(id,dir){
+  const el=document.getElementById(id);if(!el)return
+  const cls=dir==='v'?'spark-v':dir==='rtl'?'spark-rtl':'spark-ltr'
+  el.classList.remove('spark-ltr','spark-rtl','spark-v')
+  requestAnimationFrame(()=>{el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),750)})
+}
+
+function journeyReveal(n){
+  if(n<1||n>10)return
+  /* marcar paso anterior como done */
+  if(n>1){
+    const prev=document.getElementById('jstep'+(n-1))
+    if(prev){prev.classList.remove('jcur');prev.classList.add('jdone')}
+  }
+  /* mostrar paso actual */
+  const el=document.getElementById('jstep'+n)
+  if(el)el.classList.add('jon','jcur')
+  /* conector + spark */
+  const cid=JCONNS[n-1]
+  if(cid){
+    const c=document.getElementById(cid);if(c)c.classList.add('jon')
+    setTimeout(()=>{
+      if(n===6)jSpark('jconnv','v')
+      else if(n>6)jSpark(cid,'rtl')
+      else jSpark(cid,'ltr')
+    },40)
+  }
+  /* fases */
+  const phIdx=JPHASE_IDX[n-1]
+  ;['jph0','jph1','jph2','jph3'].forEach((id,i)=>{
+    const ph=document.getElementById(id);if(!ph)return
+    if(i<phIdx){ph.className='jphase jph-done'}
+    else if(i===phIdx){ph.className='jphase jph-on'}
+    else{ph.className='jphase'}
+  })
+  /* progreso */
+  const prog=document.getElementById('jprog');if(prog)prog.classList.add('jon')
+  const pn=document.getElementById('jprog-num');if(pn)pn.textContent=n
+  const pf=document.getElementById('jprog-fill');if(pf)pf.style.width=(n/10*100)+'%'
+  /* descripción */
+  const d=document.getElementById('jdesc10')
+  if(d){d.classList.remove('jon');setTimeout(()=>{d.textContent=JDESCS[n-1];d.classList.add('jon')},55)}
+  jStep=n;jComplete=(n===10)
+  /* botón */
+  const btn=document.getElementById('jnext');if(!btn)return
+  if(jComplete){
+    btn.innerHTML='Continuar al siguiente →'
+    btn.classList.remove('pulse');btn.classList.add('done')
+    btn.onclick=()=>navTo(activeSec+1)
+  } else {
+    btn.innerHTML='Siguiente etapa &nbsp;<span id="jcounter">'+(n+1)+'&thinsp;/&thinsp;10</span> →'
+    btn.classList.add('pulse');btn.onclick=journeyNext
+  }
+}
+
+function journeyNext(){
+  if(jComplete){navTo(activeSec+1)}
+  else{journeyReveal(jStep+1)}
+}
+
+function resetJourney(){
+  jStep=0;jComplete=false
+  document.querySelectorAll('.jstep10').forEach(el=>el.classList.remove('jon','jcur','jdone'))
+  ;['jconn12','jconn23','jconn34','jconn45','jconnv','jconn67','jconn78','jconn89','jconn910'].forEach(id=>{
+    const c=document.getElementById(id);if(c)c.classList.remove('jon','spark-ltr','spark-rtl','spark-v')
+  })
+  ;['jph0','jph1','jph2','jph3'].forEach(id=>{const p=document.getElementById(id);if(p)p.className='jphase'})
+  const prog=document.getElementById('jprog');if(prog)prog.classList.remove('jon')
+  const pn=document.getElementById('jprog-num');if(pn)pn.textContent='0'
+  const pf=document.getElementById('jprog-fill');if(pf)pf.style.width='0%'
+  const d=document.getElementById('jdesc10');if(d){d.classList.remove('jon');d.textContent=''}
+  const btn=document.getElementById('jnext')
+  if(btn){
+    btn.innerHTML='Siguiente etapa &nbsp;<span id="jcounter">1&thinsp;/&thinsp;10</span> →'
+    btn.classList.add('pulse');btn.classList.remove('done');btn.onclick=journeyNext
+  }
+}
+
+/* ═══════════ CONSTELLATION CHARTS ═══════════ */
+function animateConstellation(svgId){
+  const svg=document.getElementById(svgId)
+  if(!svg||svg.dataset.done)return
+  svg.dataset.done='1'
+  // 1. competitor dots (staggered)
+  svg.querySelectorAll('.cc-comp').forEach((el,i)=>setTimeout(()=>el.classList.add('animate'),i*180))
+  // 2. market curve
+  setTimeout(()=>svg.querySelector('.cc-market')?.classList.add('animate'),520)
+  // 3. competitor labels
+  svg.querySelectorAll('.cc-lbl-comp,.cc-lbl-sub').forEach((el,i)=>setTimeout(()=>el.classList.add('animate'),640+i*100))
+  // 4. JERS constellation lines
+  svg.querySelectorAll('.cc-jline').forEach((el,i)=>setTimeout(()=>el.classList.add('animate'),1020+i*180))
+  // 5. JERS star
+  svg.querySelectorAll('.cc-dot-jers').forEach(el=>setTimeout(()=>el.classList.add('animate'),1180))
+  // 6. JERS labels
+  svg.querySelectorAll('.cc-lbl-jm,.cc-lbl-js').forEach((el,i)=>setTimeout(()=>el.classList.add('animate'),1380+i*120))
+}
+function resetConstellation(svgId){
+  const svg=document.getElementById(svgId);if(!svg)return
+  delete svg.dataset.done
+  svg.querySelectorAll('.cc-comp,.cc-market,.cc-jline,.cc-dot-jers,.cc-lbl-comp,.cc-lbl-sub,.cc-lbl-jm,.cc-lbl-js').forEach(el=>el.classList.remove('animate'))
+}
+
+/* detectar llegada a slide 5 */
+let jPrevSec=-1
+/* ── índices dinámicos por ID de sección ── */
+const _secs=[...document.querySelectorAll('.scene-section')]
+const JOURNEY_IDX=_secs.findIndex(s=>s.id==='s5')
+const CONST1_IDX=_secs.findIndex(s=>s.id==='s8')
+const CONST2_IDX=_secs.findIndex(s=>s.id==='s9')
+window.addEventListener('scroll',()=>{
+  if(activeSec!==jPrevSec){
+    if(activeSec===JOURNEY_IDX){
+      if(jStep===0){setTimeout(()=>{if(jStep===0)journeyReveal(1)},700)}
+      else if(jComplete){resetJourney();setTimeout(()=>journeyReveal(1),700)}
+    }
+    if(activeSec===CONST1_IDX)animateConstellation('ccsvg9')
+    if(activeSec===CONST2_IDX)animateConstellation('ccsvg10')
+    if(jPrevSec===CONST1_IDX)resetConstellation('ccsvg9')
+    if(jPrevSec===CONST2_IDX)resetConstellation('ccsvg10')
+    jPrevSec=activeSec
+  }
+},{passive:true})
+
+/* ── REVEAL: IntersectionObserver + fallback ── */
+function checkReveal(){
+  document.querySelectorAll('.content:not(.visible)').forEach(el=>{
+    const r=el.getBoundingClientRect();
+    if(r.top<innerHeight*.94&&r.bottom>0)el.classList.add('visible')
+  })
+}
+const revealIO=new IntersectionObserver((entries,obs)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})
+},{threshold:0.04,rootMargin:'0px 0px -2% 0px'})
+function setupReveal(){
+  document.querySelectorAll('.content').forEach(el=>{
+    const r=el.getBoundingClientRect()
+    if(r.bottom<=innerHeight+80){
+      /* ya pasó o está en pantalla: mostrar sin transición */
+      el.style.transition='none';el.classList.add('visible')
+      requestAnimationFrame(()=>el.style.transition='')
+    } else {
+      revealIO.observe(el)
+    }
+  })
+}
+window.addEventListener('scroll',checkReveal,{passive:true})
+if(document.fonts&&document.fonts.ready){document.fonts.ready.then(()=>{void document.body.offsetHeight;checkReveal()})}
+;(()=>{const s=localStorage.getItem('jers-s');if(s)window.scrollTo(0,+s);setTimeout(setupReveal,80)})()
+
+/* ── RENDER LOOP ── */
+function tick(){
+  requestAnimationFrame(tick)
+  const t=performance.now()*.001
+  const dH=document.documentElement.scrollHeight-innerHeight
+  const frac=dH>0?window.scrollY/dH:0
+  const raw=computeRaw(window.scrollY)
+  const camRaw=raw/9*(WP.length-1)
+  const idx=Math.min(Math.floor(camRaw),WP.length-2)
+  const f=ss(Math.max(0,Math.min(1,camRaw-idx)))
+  const A=WP[idx],B=WP[idx+1]
+  camera.position.set(lerp(A.p[0],B.p[0],f)+mouse.x*2,lerp(A.p[1],B.p[1],f)+mouse.y*1.2,lerp(A.p[2],B.p[2],f))
+  camera.lookAt(lerp(A.l[0],B.l[0],f)+mouse.x*.6,lerp(A.l[1],B.l[1],f),lerp(A.l[2],B.l[2],f))
+  /* crossfade de escenas — solo la escena activa es visible */
+  for(let s=0;s<SCENES.length;s++){
+    const g=SCENES[s],fade=sceneFade(Math.abs(raw-g.userData.center))
+    if(fade<=0.002){g.visible=false}
+    else{g.visible=true;const M=g.userData.mats;for(let i=0;i<M.length;i++)M[i].m.opacity=M[i].base*fade}
+  }
+  if(icoRef){icoRef.rotation.x=t*.1;icoRef.rotation.y=t*.15}
+  if(starFieldRef)starFieldRef.rotation.y=t*.01
+  if(starMat)starMat.uniforms.uTime.value=t
+  if(galaxyPtsRef)galaxyPtsRef.rotation.z=t*.02
+  if(nebRef){nebRef.rotation.y=t*.03;nebRef.rotation.z=t*.012}
+  planetGroups.forEach(({pg,pd,idx:i})=>{const a=t*pd.s;pg.position.x=Math.cos(a)*pd.d;pg.position.z=Math.sin(a)*pd.d;pg.children[0].rotation.y=t*(.5+i*.1)})
+  timeHands.forEach((h,i)=>{h.rotation.z=t*(.5-i*.15)})
+  if(massRef){const pulse=1+Math.sin(t*2)*.08;massRef.scale.setScalar(pulse);massRef.position.x=Math.cos(t*.45)*5;massRef.position.z=5+Math.sin(t*.45)*4}
+  if(relRef)relRef.rotation.z=t*.06
+  wormRings.forEach((r,i)=>{r.rotation.z=t*.15+i*.08;const s=1+Math.sin(t*3+i*.3)*.08;r.scale.setScalar(s)})
+  if(diskRef)diskRef.rotation.z=t*.1
+  beyondBubbles.forEach((b,i)=>{b.rotation.x=t*.03+i;b.rotation.y=t*.02+i*.5})
+  if((tick._f=(tick._f||0)+1)%14===0)checkReveal()
+  renderer.render(scene,camera)
+}
+tick();updateUI();refreshTops()
+</script>
+</body>
+</html>

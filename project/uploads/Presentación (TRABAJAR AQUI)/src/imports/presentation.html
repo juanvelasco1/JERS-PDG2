@@ -1,0 +1,102 @@
+Build a single-page responsive presentation/slideshow app (16:9) that scales correctly on ANY screen size and pixel density.
+
+CORE REQUIREMENTS:
+- Responsive 16:9 canvas that always fits the viewport without cropping.
+- Use a centered “stage” with aspect-ratio: 16 / 9 (or equivalent) and scale it to fit within the viewport (contain behavior).
+- Add safe margins (inner padding) so text never touches edges on small screens.
+- Typography must scale fluidly (clamp) to remain readable on mobile and large screens.
+- No fixed pixel positioning that breaks on different sizes.
+
+STYLE:
+Light mode with warm off-white/cream background (#fcfaf5),
+navy-blue text (#0b1422),
+blue accents (#1d4ed8),
+IBM Plex Mono font throughout,
+border-radius: 0.2rem globally,
+no shadows, no gradients,
+minimal borders rgba(90,78,55,0.12),
+flat, monospaced, architecturally minimal,
+clean left-aligned typography, generous whitespace,
+subtle border-b dividers only,
+navigation: small arrow buttons + thin progress bar at bottom,
+no emojis, no icons, no decorative elements.
+
+LAYOUT SYSTEM:
+- Use a simple grid: 12 columns, max width inside the stage, left-aligned content.
+- Each slide has:
+  1) a small section label (optional),
+  2) a strong headline,
+  3) 1–4 short lines (bullets or short sentences).
+- Keep max 4 lines per slide. No paragraphs.
+
+CONTENT LANGUAGE:
+All content in Spanish. Short, easy to translate to English.
+
+SLIDES (10 max):
+
+Slide 1 — Portada
+JERS Consultora Digital
+Web rápida. UX real. IA aplicada.
+
+Slide 2 — Problema
+Las pymes pierden clientes por:
+Web lenta
+Mala experiencia
+Baja conversión
+
+Slide 3 — Oportunidad
+El mercado necesita:
+Velocidad
+Calidad
+Precio accesible
+
+Slide 4 — Propuesta de valor
+Alta calidad UX
+Entrega rápida
+Costo optimizado
+Proceso AI-first
+
+Slide 5 — Posicionamiento
+Alta calidad
+Precio accesible
+Entrega rápida
+
+Slide 6 — MVP
+Landing estructurada
+Diagnóstico automatizado
+Arquitectura inicial
+Optimización base
+
+Slide 7 — Alcance por sprint
+Sprint 1 — Investigación
+Sprint 2 — Diseño
+Sprint 3 — Desarrollo
+Sprint 4 — Validación
+
+Slide 8 — Validación
+Qué validamos:
+Reducción de tiempo
+Claridad propuesta
+Interés real
+
+Slide 9 — Modelo de negocio
+Proyectos web
+Mantenimiento mensual
+Sistema escalable
+
+Slide 10 — Visión
+Convertir metodología en producto
+Reducir carga operativa
+Escalar regional y nacionalmente
+
+NAVIGATION:
+- Bottom area inside the stage:
+  - Left/right arrow buttons (small, minimal).
+  - Thin progress bar that fills as slides advance.
+- Also allow keyboard navigation (left/right).
+
+DESIGN DETAILS:
+- Use only subtle border-bottom dividers.
+- Use blue accent (#1d4ed8) only for 1–3 keywords per slide.
+- No containers/cards. No background blocks.
+- Maintain consistent spacing rhythm across slides.
