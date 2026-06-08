@@ -80,16 +80,21 @@ nav.hidden{transform:translateY(-100%)}
 
 /* ── Objetivo del Proyecto ── */
 .obj-section{justify-content:center!important;padding-left:0!important;padding-right:0!important}
-.obj-wrap{max-width:820px;width:100%;padding:2rem 3rem!important;text-align:center}
-.obj-wrap h2{text-align:center}
-.obj-wrap .label{max-width:none;width:100%;text-align:center;margin:0 0 .95rem}
-.obj-statement{font-size:clamp(.95rem,1.2vw,1.15rem);line-height:1.7;color:rgba(255,255,255,.72);margin:0 auto 2rem;max-width:56ch;text-align:center}
-.obj-pillars{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;text-align:left}
-.obj-pillar{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:1.2rem 1.4rem;display:flex;flex-direction:column;gap:.5rem}
-.obj-pillar-mid{background:rgba(92,179,255,.07);border-color:rgba(92,179,255,.3)}
-.obj-pill-label{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.obj-pill-q{font-size:1.15rem;font-weight:700;color:#fff;line-height:1.2}
-.obj-pill-evid{font-size:.82rem;color:rgba(255,255,255,.55);line-height:1.55;margin-top:.2rem}
+.obj-wrap{max-width:100%;width:100%;padding:2rem 6vw!important;display:grid;grid-template-columns:1fr 1fr;gap:5vw;align-items:start;text-align:left}
+.obj-wrap h2{text-align:left;font-size:clamp(2.2rem,4vw,4rem)!important;line-height:1.1;margin-bottom:1.2rem}
+.obj-wrap .label{max-width:none;width:100%;text-align:left;margin:0 0 .8rem}
+.obj-statement{font-size:clamp(.95rem,1.2vw,1.1rem);line-height:1.75;color:rgba(255,255,255,.65);margin:0;max-width:none}
+.obj-statement strong{color:#fff;font-weight:700}
+.obj-statement .ac{color:var(--accent);font-weight:700}
+.obj-right{display:flex;flex-direction:column;gap:0}
+.obj-right-label{text-transform:uppercase;font-size:clamp(.78rem,1vw,.95rem);letter-spacing:4px;color:var(--accent);margin-bottom:.8rem;font-weight:600}
+.obj-right h2{text-align:left;font-size:clamp(2rem,3.5vw,3.4rem)!important;line-height:1.1;margin-bottom:1.2rem}
+.obj-numlist{list-style:none;display:flex;flex-direction:column;gap:0}
+.obj-numitem{display:grid;grid-template-columns:2rem 1fr;gap:.75rem;padding:.8rem 0;border-bottom:1px solid rgba(255,255,255,.07);align-items:baseline}
+.obj-numitem:last-child{border-bottom:none}
+.obj-n{font-size:1rem;font-weight:800;color:var(--accent);line-height:1}
+.obj-numitem p{font-size:clamp(.88rem,1.1vw,1rem);color:rgba(255,255,255,.7);line-height:1.5;margin:0}
+.obj-numitem p strong{color:#fff;font-weight:700}
 
 .facts{display:flex;gap:2rem;flex-wrap:wrap;margin-top:1.4rem}
 .fact-box{text-align:left}
@@ -646,9 +651,42 @@ nav.hidden{transform:translateY(-100%)}
 
 <section class="scene-section obj-section" id="s-obj" data-screen-label="Objetivo">
   <div class="content obj-wrap">
-    <p class="label">Objetivo General</p>
-    <h2 style="margin-bottom:.85rem">Validación de la <span class="dim">viabilidad</span><br>de JERS</h2>
-    <p class="obj-statement">Determinar la viabilidad comercial de JERS como consultora de soluciones digitales en el mercado colombiano de pymes.</p>
+
+    <!-- Columna izquierda: Objetivo General -->
+    <div>
+      <p class="label">Objetivo General</p>
+      <h2>Validar un <span class="dim">MVP</span><br>en 4 meses</h2>
+      <p class="obj-statement">Validar un MVP que corresponda con la <span class="ac">propuesta de valor de JERS</span>, en 4 meses (etapa inicial), que permita a <strong>JERS Consultora Digital</strong> optimizar los <strong>procesos de diagnóstico, definición y planteamiento de soluciones</strong>, reduciendo la <strong>carga operativa del equipo</strong> y convirtiéndola en un <span class="ac">producto comercializable para empresas.</span></p>
+    </div>
+
+    <!-- Columna derecha: Objetivos Específicos -->
+    <div class="obj-right">
+      <p class="obj-right-label">Objetivos Específicos</p>
+      <h2>5 pasos para <span class="dim">lograrlo</span></h2>
+      <ol class="obj-numlist">
+        <li class="obj-numitem">
+          <span class="obj-n">1.</span>
+          <p>Convertir la metodología de trabajo de JERS en un <strong>sistema escalable y eficiente.</strong></p>
+        </li>
+        <li class="obj-numitem">
+          <span class="obj-n">2.</span>
+          <p>Desarrollar el <strong>Business Plan</strong> de JERS proyectado a 5 años, con 3 perspectivas (conservadora, éxito, fracaso).</p>
+        </li>
+        <li class="obj-numitem">
+          <span class="obj-n">3.</span>
+          <p><strong>Construir un MVP.</strong></p>
+        </li>
+        <li class="obj-numitem">
+          <span class="obj-n">4.</span>
+          <p>Aplicar el MVP y evaluar la experiencia de servicio en <strong>1 o 2 proyectos reales</strong> a través de prospectos interesados en la propuesta de valor.</p>
+        </li>
+        <li class="obj-numitem">
+          <span class="obj-n">5.</span>
+          <p>Presentar los <strong>resultados de la validación</strong> del MVP.</p>
+        </li>
+      </ol>
+    </div>
+
   </div>
 </section>
 
@@ -669,7 +707,7 @@ nav.hidden{transform:translateY(-100%)}
   <div class="content">
     <p class="label">Propuesta de Valor</p>
     <h2>Lo que <span class="dim">ofrecemos</span></h2>
-    <p>Análisis estratégico + diseño UX/UI + desarrollo con IA. Un proceso claro, rápido y personalizado.</p>
+    <p>Analizamos tu negocio para diseñar soluciones digitales rápidas, personalizadas y funcionales que realmente sirven a tus objetivos.</p>
     <ul class="detail-list">
       <li><strong class="ac">UX real</strong> — Diseño centrado en el usuario real</li>
       <li><strong class="ac">AI-first</strong> — Proceso automatizado con inteligencia artificial</li>
