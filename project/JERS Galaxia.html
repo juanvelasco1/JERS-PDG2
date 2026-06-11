@@ -1445,8 +1445,7 @@ window.addEventListener('scroll',()=>{
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowDown'||e.key===' '||e.key==='ArrowRight'){
     e.preventDefault()
-    if(activeSec===JOURNEY_IDX&&!jComplete){journeyNext()}
-    else{navTo(activeSec+1)}
+    navTo(activeSec+1)
   }
   if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();navTo(activeSec-1)}
 })
@@ -1585,6 +1584,35 @@ function journeyNext(){
   else{journeyReveal(jStep+1)}
 }
 
+function journeyComplete(){
+  /* Revela todos los 10 pasos de golpe */
+  for(let i=1;i<=9;i++){
+    const el=document.getElementById('jstep'+i);
+    if(el){el.classList.add('jon','jdone');el.classList.remove('jcur')}
+    const cid=JCONNS[i-1];
+    if(cid){const c=document.getElementById(cid);if(c)c.classList.add('jon')}
+  }
+  const el10=document.getElementById('jstep10');
+  if(el10){el10.classList.add('jon','jcur');el10.classList.remove('jdone')}
+  const cv=document.getElementById('jconnv');if(cv)cv.classList.add('jon')
+  /* Todas las fases done excepto la última */
+  ;['jph0','jph1','jph2'].forEach(id=>{const p=document.getElementById(id);if(p)p.className='jphase jph-done'})
+  const p3=document.getElementById('jph3');if(p3)p3.className='jphase jph-on'
+  /* Progreso */
+  const prog=document.getElementById('jprog');if(prog)prog.classList.add('jon')
+  const pn=document.getElementById('jprog-num');if(pn)pn.textContent='10'
+  const pf=document.getElementById('jprog-fill');if(pf)pf.style.width='100%'
+  /* Descripción */
+  const d=document.getElementById('jdesc10');
+  if(d){d.textContent=JDESCS[9];d.classList.add('jon')}
+  /* Botón */
+  const btn=document.getElementById('jnext');if(!btn)return
+  btn.innerHTML='Continuar al siguiente →'
+  btn.classList.remove('pulse');btn.classList.add('done')
+  btn.onclick=()=>navTo(activeSec+1)
+  jStep=10;jComplete=true
+}
+
 function resetJourney(){
   jStep=0;jComplete=false
   document.querySelectorAll('.jstep10').forEach(el=>el.classList.remove('jon','jcur','jdone'))
@@ -1638,8 +1666,8 @@ window.addEventListener('scroll',()=>{
   if(activeSec!==jPrevSec){
     if(!_fsGuard){
       if(activeSec===JOURNEY_IDX){
-        if(jStep===0){setTimeout(()=>{if(jStep===0)journeyReveal(1)},700)}
-        else if(jComplete){resetJourney();setTimeout(()=>journeyReveal(1),700)}
+        if(jStep===0){setTimeout(()=>{if(jStep===0)journeyComplete()},700)}
+        else if(jComplete){resetJourney();setTimeout(()=>journeyComplete(),700)}
       }
       if(activeSec===CONST1_IDX)animateConstellation('ccsvg9')
       if(activeSec===CONST2_IDX)animateConstellation('ccsvg10')
